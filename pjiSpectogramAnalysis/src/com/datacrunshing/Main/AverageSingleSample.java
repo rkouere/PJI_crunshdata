@@ -32,7 +32,11 @@ public class AverageSingleSample extends Average {
         openInputStreams(); 
     }
     
-    public void exportFile() throws IOException {
+    /**
+     * Imprime la valeur moyenne, minimum et maximum d'un fichier bin 
+     * @throws IOException 
+     */
+    public void printFileInfo() throws IOException {
         byte[] buffer = new byte[Tools.dataSize];
         long result = 0;
         long tmp;
