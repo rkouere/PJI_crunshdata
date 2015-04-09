@@ -18,18 +18,9 @@ import static sun.security.krb5.Confounder.bytes;
  */
 public class Main {
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        byte[] test = new byte[4];
-        test[0] = 1;
-        test[1] = 1;
-        test[2] = 1;
-        test[3] = (byte)255;
-        System.out.println(byteArrayToHex(test));
-        
-        
-        ByteBuffer bb = ByteBuffer.wrap(test);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
-        System.out.println(bb.getInt() & 0xEFFFFFFF);
 
-        //new AverageSamples(args).exportFile();
+
+        //new AverageMultipleSamples(args).exportFile();
+         new AverageSingleSample(args).exportFile();
     }
 }

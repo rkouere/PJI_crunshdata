@@ -23,12 +23,8 @@ import java.util.Arrays;
  *
  * @author rkouere
  */
-public class AverageSamples {
-    //private String[] samples = null;
-    private int numberOfSamples = 0;
-    private InputStream[] fileInputStream = null;
-    private FileOutputStream fileOutputStream = null;
-    private File[] samples = null;
+public class AverageMultipleSamples extends Average {
+ 
 
     /** Initialise les variables.
      * Vérifie que l'on a au moins un fichier a traiter.
@@ -38,13 +34,13 @@ public class AverageSamples {
      * @param args
      * @throws FileNotFoundException 
      */
-    public AverageSamples(String[] args) throws FileNotFoundException {
+    public AverageMultipleSamples(String[] args) throws FileNotFoundException {
         this.numberOfSamples = args.length;
         System.out.println("Processing " + this.numberOfSamples + " samples");
         checkArgs(this.numberOfSamples);
-        openFiles(args);
+        this.samples = openFiles(args, this.numberOfSamples);
         checkFileSize();
-        openStreams(); 
+        openInputStreams(); 
     }
     
     
@@ -62,23 +58,16 @@ public class AverageSamples {
         {
             result = 0;
             //  create a byte buffer and wrap the array
-            bb = ByteBuffer.wrap(buffer);
-            // by default Java encodes in big_endian
-            bb.order(ByteOrder.LITTLE_ENDIAN);
-            // we need the mask to have an unsigned int
-            tmp = bb.getInt() & 0xFFFF;
-            result += tmp;
+
+            result += byteToLong(buffer);
             System.out.println(new Tools().byteArrayToHex(buffer));
 
-            System.out.println("[0] " + tmp);
+            System.out.println("[0] " + result);
             
             for(int i = 1; i < this.samples.length; i++) {
-                bytesRead = fileInputStream[0].read(buffer);
-                bb = ByteBuffer.wrap(buffer);
-                bb.order(ByteOrder.LITTLE_ENDIAN);
-                tmp = bb.getInt() & 0xFFFF;
-                result += tmp;
-                System.out.println("[" + i +"] " + tmp);
+                bytesRead = fileInputStream[i].read(buffer);
+                result += byteToLong(buffer);
+                System.out.println("[" + i +"] " + result);
             }
 
             result = result / this.numberOfSamples;
@@ -88,7 +77,7 @@ public class AverageSamples {
         return true;
     }
     
-    
+
     /**
      * Checks that all the file sizes are the same.
      * If not, we stop the program.
@@ -109,30 +98,11 @@ public class AverageSamples {
             System.exit(-1);
         }
     }
-    /**
-     * Initialise le tableau de files + cree les fichiers..
-     * 
-     */
-    private void openFiles(String[] args) {
-        this.samples = new File[this.numberOfSamples];
-        for(int i = 0; i < this.numberOfSamples; i++) {
-            this.samples[i] = new File(args[i]);
-        }
-    }
-    
+
     
 
     
-    /** Initialise le tableau d'InputStream.
-     * Ouvre les stream pour chaque fichiers
-     * @throws FileNotFoundException 
-     */
-    private void openStreams()  throws FileNotFoundException {
-        this.fileInputStream = new InputStream[this.numberOfSamples];
-        for(int i = 0; i < this.numberOfSamples; i++) {
-            this.fileInputStream[i] = new BufferedInputStream(new FileInputStream(this.samples[i]));
-        }
-    }
+
     
     /**
      * Verifie que l'on traite au monins deux samples.
