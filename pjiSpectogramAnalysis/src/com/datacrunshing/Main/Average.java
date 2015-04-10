@@ -71,14 +71,16 @@ public class Average  {
             Tools.displayErrorAndExit("La taille du tableau envoyé n'est pas bonne");
         }
             
-        return (bytes[0] & 0xFF) | (((bytes[1]) & 0xFF) << 4) | (((bytes[2]) & 0xFF) << 16) |(((bytes[3]) & 0xFF) << 24);   
+        return (bytes[0] & 0xFF) | (((bytes[1]) & 0xFF) << 8) | (((bytes[2]) & 0xFF) << 16) |(((bytes[3]) & 0xFF) << 24);   
     }
     
-    public byte[] longToByte(long num) {
+    public byte[] intToByte(long num) {
         byte[] result = new byte[Tools.dataSize];
-        
+        result[3] = (byte)((num >> 24) & 0xFF);
+        result[2] = (byte)((num >> 16) & 0xFF);
+        result[1] = (byte)((num >> 8) & 0xFF);
+        result[0] = (byte)((num) & 0xFF);
 
-            
         return result;   
     }
 
