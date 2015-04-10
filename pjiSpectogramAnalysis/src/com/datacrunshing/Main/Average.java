@@ -23,7 +23,6 @@ public class Average  {
     //private String[] samples = null;
     public int numberOfSamples = 0;
     public InputStream[] fileInputStream = null;
-    public FileOutputStream fileOutputStream = null;
     public File[] samples = null;
     /**
      * Initialise le tableau de files + cree les fichiers..
@@ -49,6 +48,19 @@ public class Average  {
     }
     
     /**
+     * Permet de tranformer un long en int tout en verifiant que l'on ne perdra pas d'information en route.
+     * @param l Le lon a tranformer
+     * @return un int
+     */
+    public static int safeLongToInt(long l) {
+        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException
+                (l + " cannot be cast to int without changing its value.");
+        }
+        return (int) l;
+    }
+    
+    /**
      * Tranforms a table of 4 little endian bytes to a long
      * @param bytes a table of 4 bytes
      * @return signed long
@@ -62,7 +74,13 @@ public class Average  {
         return (bytes[0] & 0xFF) | (((bytes[1]) & 0xFF) << 4) | (((bytes[2]) & 0xFF) << 16) |(((bytes[3]) & 0xFF) << 24);   
     }
     
-    
+    public byte[] longToByte(long num) {
+        byte[] result = new byte[Tools.dataSize];
+        
+
+            
+        return result;   
+    }
 
     
 }
