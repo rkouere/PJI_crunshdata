@@ -14,6 +14,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  *
@@ -24,6 +25,17 @@ public class Average  {
     public int numberOfSamples = 0;
     public InputStream[] fileInputStream = null;
     public File[] samples = null;
+    public String[] arguments = null;
+
+    public void init(String[] args)  throws FileNotFoundException {
+        this.arguments = Arrays.copyOfRange(args, 1, args.length);
+        this.numberOfSamples = this.arguments.length;
+        this.samples = openFiles(this.arguments, this.numberOfSamples);
+
+    }
+    
+    
+    
     /**
      * Initialise le tableau de files + cree les fichiers..
      * 
