@@ -24,7 +24,7 @@ import java.util.Arrays;
  * @author rkouere
  */
 public class AverageMultipleSamples extends Average {
- 
+    private FileOutputStream fileOutputStream = null;
 
     /** Initialise les variables.
      * Vérifie que l'on a au moins un fichier a traiter.
@@ -35,12 +35,9 @@ public class AverageMultipleSamples extends Average {
      * @throws FileNotFoundException 
      */
     public AverageMultipleSamples(String[] args) throws FileNotFoundException {
-        this.numberOfSamples = args.length;
-        System.out.println("Processing " + this.numberOfSamples + " samples");
-        checkArgs(this.numberOfSamples);
-        this.samples = openFiles(args, this.numberOfSamples);
+        super(args);
         checkFileSize();
-        openInputStreams(); 
+        this.fileOutputStream = Tools.openOutputStream(this.samples[0], "newSample.bin");
     }
     
     
@@ -56,24 +53,24 @@ public class AverageMultipleSamples extends Average {
         */
         while ((bytesRead = fileInputStream[0].read(buffer)) != -1)     
         {
-            result = 0;
-            //  create a byte buffer and wrap the array
-
-            result += byteToLong(buffer);
-            System.out.println(new Tools().byteArrayToHex(buffer));
-
-            System.out.println("[0] " + result);
-            
+            // on ajoute la valeur du premier fichier dans les resultat
+            result = byteToLong(buffer);
+            // on fait de même pour tous les autres fichiers à traiter
             for(int i = 1; i < this.samples.length; i++) {
                 bytesRead = fileInputStream[i].read(buffer);
+                
+                if(bytesRead == -1)
+                    Tools.displayErrorAndExit("Nous avons eu un très très gros problème de lecture du fichier " + this.samples[i].getName() + ". Le programme doit s'arreter.");
+                
                 result += byteToLong(buffer);
-                System.out.println("[" + i +"] " + result);
             }
-
-            result = result / this.numberOfSamples;
             
-            //fileOutputStream.write(buffer, 0, bytesRead);         
-        }   
+            // on fait la moyenne
+            result = result/this.samples.length;
+            int tmpInt = safeLongToInt(result);
+            fileOutputStream.write(intToByte(tmpInt), 0, bytesRead);         
+        }
+        this.fileOutputStream.close();
         return true;
     }
     
@@ -100,10 +97,6 @@ public class AverageMultipleSamples extends Average {
     }
 
     
-
-    
-
-    
     /**
      * Verifie que l'on traite au monins deux samples.
      * @param numberOfSamples 
@@ -114,52 +107,5 @@ public class AverageMultipleSamples extends Average {
             System.exit(-1);
         }
     }
-    
-    
-//    public static void main(String[] args) throws IOException {
-// 
-//        
-//
-//        try {
-//
-//            //find the file size
-//            File fileHandle = new File("test.jpg");     
-//            long length = fileHandle.length();
-//
-//                //Open the input and out files for the streams
-//                fileInputStream = new BufferedInputStream(new FileInputStream(args[0]));
-//                
-//                //Read data into buffer and then write to the output file
-//                // We import 4 octets
-//                byte[] buffer = new byte[Tools.dataSize];                
-//                int bytesRead;                                    
-//                while ((bytesRead = fileInputStream.read(buffer)) != -1)     
-//                {     
-//                    
-//                    System.out.println(new Tools().byteArrayToHex(buffer));
-//                    //fileOutputStream.write(buffer, 0, bytesRead);           
-//                }   
-//
-//        }
-//        catch (IOException e)
-//        {
-//            //Display or throw the error
-//            System.out.println("Eorr while execting the program: " + e.getMessage());
-//        }    
-//         finally 
-//        {
-//            //Close the resources correctly
-//            if (fileInputStream != null)
-//            {
-//                fileInputStream.close();
-//            }
-//            if (fileInputStream != null)
-//            {
-//                fileOutputStream.close();
-//            }
-//        }
-//
-//
-//        
-//    }
+
 }

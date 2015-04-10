@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  *
@@ -19,17 +20,46 @@ import java.nio.ByteBuffer;
  */
 public class AverageSingleSample extends Average {
     // the number of measures present in the file
-    private int numberOfOctet = 0;
+    private int nbrMeasuresInFile = 0;
     private long maxValue;
     private long minValue;
-    private boolean started = false;
-    
-    public AverageSingleSample(String[] args) throws FileNotFoundException {
-        if(args.length != 1)
-            Tools.displayErrorAndExit("Le programe ne prend qu'un argument : le fichier a traiter");
-        this.numberOfSamples = args.length;
-        this.samples = openFiles(args, this.numberOfSamples);
-        openInputStreams(); 
+
+    private int[] sampleData;
+    private long nbrBytesInSample;
+    private int counter = 0;
+    private int indexFirstTopElipse;
+    private int indexLastTopElipse;
+
+
+    /**
+     * Initialise les paramètres puis renseigne les variables.
+     * Vérifie que la taille des samples est traitable.
+     * Copie les données du sample dans un tableau
+     * Recupere la position de la premiere elipse.
+     * Recupere la position de la derniere elipse.
+     * 
+     * @param args les arguments du programe
+     * @throws FileNotFoundException
+     * @throws IOException 
+     */
+    public AverageSingleSample(String[] args) throws FileNotFoundException, IOException {
+        super(args);
+        this.nbrBytesInSample = this.samples[0].length();
+        
+        // on verifie que le nombre de données présente dans le fichier ne va pas faire exploser notre ram
+        if ((this.nbrBytesInSample/Tools.dataSize) > Integer.MAX_VALUE)
+            Tools.displayErrorAndExit("Le fichier a traiter a plus de 2^32 byte. Cela ne va pas le faire");
+        
+        // on calcul le nombre de mesures present dans le fichier
+        this.nbrMeasuresInFile = safeLongToInt(this.nbrBytesInSample)/Tools.dataSize;
+        this.sampleData = new int[this.nbrMeasuresInFile];
+        
+        //on copie les données dans un tableau
+        parseData();
+        // on recupere les index du debut et de la fin du future fichiers
+        this.indexFirstTopElipse = findFirstTopElipse();
+        this.indexLastTopElipse = findLastTopElipse();
+
     }
     
     /**
@@ -40,33 +70,93 @@ public class AverageSingleSample extends Average {
         byte[] buffer = new byte[Tools.dataSize];
         long result = 0;
         long tmp;
+
+        this.maxValue = Long.MIN_VALUE;
+        this.minValue = Long.MAX_VALUE;
         /* Pour chaque 32 bits, on va lire le premier fichier et ajouter sa valeur dans result.
             On va ensuite faire de même pour les autres et calculer sa moyenne.
         */
-        while (fileInputStream[0].read(buffer) != -1)     
-        {
-            tmp = byteToLong(buffer);
-            // si c'est notre premiere passe, on initialise les valeur max et min (sinon, elle seront initialisé à 0 par défault et les résultat que nous aurons ne seront pas formcément les bon)
-            if(started == false) {
-                this.maxValue = this.minValue = tmp;
-                started = true;
-            }
+        
+        for(int i = 0; i < this.nbrMeasuresInFile; i++) {
+            tmp = this.sampleData[i];
             // on met à jours les valeurs max et min, si besoin
-            else {
-                if(tmp > this.maxValue)
-                    this.maxValue = tmp;
-                if(tmp < this.minValue)
-                    this.minValue = tmp;
+            if(tmp > this.maxValue) {
+                //System.out.println(tmp);
+                this.maxValue = tmp;
             }
+            if(tmp < this.minValue) {
+                this.minValue = tmp;
+            }
+
             // on ajoute la valeur à notre resultat final
             result += tmp;
-            this.numberOfOctet ++;
+            
         }
-        
-        System.out.println("La mesure moyenne est de : " + result/this.numberOfOctet);
+        System.out.println("La mesure moyenne est de : " + result/this.nbrMeasuresInFile);
         System.out.println("La mesure maximum est de : " + this.maxValue);
         System.out.println("La mesure minimum est de : " + this.minValue);
+        System.out.println("En decoupant à partir de la premiere elipse, il resterait " + (this.sampleData.length - this.indexFirstTopElipse)  + " samples.");
+        System.out.println("La taille optimal du fichier allant de lal premiere elipse a la derniere serait de " + (this.indexLastTopElipse - this.indexFirstTopElipse)  + " samples.");
         
     }
     
+    /**
+     * Copie les données présente dans le sample dans un tableau de int
+     * @throws IOException 
+     */
+    private void parseData() throws IOException {
+        byte[] buffer = new byte[Tools.dataSize];
+        long result = 0;
+        int counter = 0;
+        long tmp;
+
+        while (fileInputStream[0].read(buffer) != -1)     
+        {
+            this.sampleData[counter++] = safeLongToInt(byteToLong(buffer));
+        }        
+    }
+    
+    /**
+     * Trouve la valeure correspondat au debut de la premiere elipse 
+     * @return L'index de la valeur
+     */
+    public int findFirstTopElipse() {
+        int indexMaxValue = 0;
+        for(int i = indexMaxValue + 1; i < this.nbrMeasuresInFile; i++) {
+            if(this.sampleData[i] < this.sampleData[indexMaxValue])
+                this.counter++;
+            else {
+                indexMaxValue = i;
+                this.counter = 0;
+            }
+            if(this.counter == Tools.sampleToParseToGetHighElipse)
+               return indexMaxValue; 
+        }
+        
+        // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
+        Tools.displayErrorAndExit("[findStartFirstElipse] Nous aurions du trouver une valeure max.");
+        return -1;
+    }
+
+    /**
+     * Trouve la valeure correspondat à la derniere elipse 
+     * @return L'index de la valeur
+     */
+    private int findLastTopElipse() {
+        int indexMaxValue = this.nbrMeasuresInFile - 1;
+        for(int i = indexMaxValue - 1; i >= 0; i--) {
+            if(this.sampleData[i] < this.sampleData[indexMaxValue])
+                this.counter++;
+            else {
+                indexMaxValue = i;
+                this.counter = 0;
+            }
+            if(this.counter == Tools.sampleToParseToGetHighElipse)
+               return indexMaxValue; 
+        }
+        
+        // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
+        Tools.displayErrorAndExit("[findStartFirstElipse] Nous aurions du trouver une valeure max.");
+        return -1;
+    }
 }
