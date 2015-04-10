@@ -27,10 +27,11 @@ public class Average  {
     public File[] samples = null;
     public String[] arguments = null;
 
-    public void init(String[] args)  throws FileNotFoundException {
+    public Average(String[] args)  throws FileNotFoundException {
         this.arguments = Arrays.copyOfRange(args, 1, args.length);
         this.numberOfSamples = this.arguments.length;
         this.samples = openFiles(this.arguments, this.numberOfSamples);
+        openInputStreams(); 
 
     }
     

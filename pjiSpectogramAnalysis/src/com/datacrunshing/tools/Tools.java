@@ -5,6 +5,10 @@
  */
 package com.datacrunshing.tools;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
 /**
  *
  * @author rkouere
@@ -21,7 +25,10 @@ public class Tools {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
     
-    
+    /**
+     * Le nombre de données que l'on lit après avoir trouvé une valeure.
+     */
+    public static final int sampleToParseToGetHighElipse = 1000;
     /**
      * Taille des données (en octets). D'après nos calculs, les données sont codés sur 32 bits, littleendien.
      */
@@ -42,4 +49,20 @@ public class Tools {
         System.out.println(ANSI_RED + msg  + ANSI_BLACK);
         System.exit(-1);
     }
+    
+    /**
+     * Ouvre un stream
+     * @param sample
+     * @param fileName
+     * @return
+     * @throws FileNotFoundException 
+     */
+    public static FileOutputStream openOutputStream(File sample, String fileName) throws FileNotFoundException{
+        String[] tmp = sample.getAbsolutePath().split("\\/");
+        String path = new String();
+        for(int i = 0; i < tmp.length - 1; i++)
+            path += tmp[i] + "/";
+        return new FileOutputStream(path + fileName);
+    }
+
 }
