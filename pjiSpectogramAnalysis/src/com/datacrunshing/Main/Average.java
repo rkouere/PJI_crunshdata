@@ -14,7 +14,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -25,26 +27,71 @@ public class Average  {
     public int numberOfSamples = 0;
     public InputStream[] fileInputStream = null;
     public File[] samples = null;
-    public String[] arguments = null;
+    public List<String> arguments = new ArrayList<String>();
+    public List<String> input = new ArrayList<String>();
+    public String output = "newSample.bin";
 
-    public Average(String[] args)  throws FileNotFoundException {
-        this.arguments = Arrays.copyOfRange(args, 1, args.length);
-        this.numberOfSamples = this.arguments.length;
-        this.samples = openFiles(this.arguments, this.numberOfSamples);
-        openInputStreams(); 
+    
+    public Average(List<String> args)  throws FileNotFoundException {
+        // on fait une copie des arguments
+        this.arguments = args;
+        getInputs();
+        if(this.arguments.get(0).equals("-o")) {
+            setOutput();
+        }
+        this.samples = openFiles(this.input, this.numberOfSamples);
+        openInputStreams();
 
     }
     
+    public void setOutput() {
+        this.arguments.remove(0);
+        this.output = this.arguments.get(0);
+        this.arguments.remove(0);
+    }
     
+
     
+    /**
+     * Will get the input files.
+     * Stops when either another command is in the arguments or when there are no more samples to deal with
+     * @param args
+     * @return the number of arguments left or -1 if there are none left
+     */
+    public int getInputs() {
+        // permet de stoquer la nouvelle 
+        
+        if(!this.arguments.get(0).equals("-i"))
+            Tools.displayErrorAndExit(Tools.help);
+        
+        this.arguments.remove(0);
+        
+        List<String> tmp = new ArrayList<>(this.arguments);
+        for(int i = 0; i < this.arguments.size(); i++) {
+            if(this.arguments.get(i).contains("-"))  {
+                this.arguments = tmp;
+                return this.arguments.size() - this.numberOfSamples;
+            }
+            else {
+                this.numberOfSamples++;
+                this.input.add(this.arguments.get(i));
+                tmp.remove(0);
+            }
+        }
+        this.arguments = tmp;
+
+        return -1;
+    }
+    
+
     /**
      * Initialise le tableau de files + cree les fichiers..
      * 
      */
-    public File[] openFiles(String[] args, int numberOfSamples) {
+    public File[] openFiles(List<String> args, int numberOfSamples) {
         File[] tmp = new File[numberOfSamples];
         for(int i = 0; i < numberOfSamples; i++) {
-            tmp[i] = new File(args[i]);
+            tmp[i] = new File(args.get(i));
         }
         return tmp;
     }
@@ -78,7 +125,7 @@ public class Average  {
      * @param bytes a table of 4 bytes
      * @return signed long
      */
-    public long byteToLong(byte[] bytes) {
+    public int byteToLong(byte[] bytes) {
         long result = 0;
         if(bytes.length != Tools.dataSize) {
             Tools.displayErrorAndExit("La taille du tableau envoyé n'est pas bonne");
@@ -87,7 +134,7 @@ public class Average  {
         return (bytes[0] & 0xFF) | (((bytes[1]) & 0xFF) << 8) | (((bytes[2]) & 0xFF) << 16) |(((bytes[3]) & 0xFF) << 24);   
     }
     
-    public byte[] intToByte(long num) {
+    public byte[] intToByte(int num) {
         byte[] result = new byte[Tools.dataSize];
         result[3] = (byte)((num >> 24) & 0xFF);
         result[2] = (byte)((num >> 16) & 0xFF);
@@ -96,6 +143,7 @@ public class Average  {
 
         return result;   
     }
+
 
     
 }

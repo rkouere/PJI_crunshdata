@@ -6,12 +6,10 @@
 package com.datacrunshing.Main;
 
 import com.datacrunshing.tools.Tools;
-import static com.datacrunshing.tools.Tools.byteArrayToHex;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import static sun.security.krb5.Confounder.bytes;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -19,20 +17,28 @@ import static sun.security.krb5.Confounder.bytes;
  */
 public class Main {
     public static void main(String[] args) throws FileNotFoundException, IOException {
-
-        if(args.length == 0) {
+        List<String> arguments = null;
+        if(args.length < 3) {
             Tools.displayErrorAndExit("Le programe prend au moins un argument. Tappez -h pour afficher l'aide.");
         }
-        else {
-            switch(args[0]) {
+        else { 
+            arguments = Tools.arrayStringToList(args);
+
+            String arg = arguments.get(0);
+            arguments.remove(0);
+            
+            switch(arg) {
                 case "-info":
-                    new AverageSingleSample(args).printFileInfo();
+                    new GetFileInfo(arguments).printFileInfo();
                     break;
                 case "-combineAvg":
-                    new AverageMultipleSamples(args).exportFile();
+                    new AveragingSamples(arguments).exportFile();
                     break;
                 case "-resample":
-                    //System.out.println(new Resample(args).findFirstTopElipse());
+                    new Resample(arguments);
+                    break;
+                case "-test":
+                    new Average(arguments);
                     break;
                 default:
                     Tools.displayErrorAndExit("Le programe prend au moins un argument. Tappez -h pour afficher l'aide.");
@@ -42,4 +48,5 @@ public class Main {
 //        
         //
     }
+    
 }

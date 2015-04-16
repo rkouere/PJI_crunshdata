@@ -11,22 +11,30 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
- *
+ * Exports a file from the top of the first elipse to the top of the last elipse
  * @author rkouere
  */
-public class Resample extends AverageSingleSample {
+public class Resample extends GetFileInfo {
     private FileOutputStream fileOutputStream = null;
 
     
-    public Resample(String[] args) throws FileNotFoundException, IOException {
+    public Resample(List<String> args) throws FileNotFoundException, IOException {
         super(args);
+        
         this.fileOutputStream = Tools.openOutputStream(this.samples[0], "newSample.bin");
+        exportFile();
+        this.fileOutputStream.close();
     }
     
     
-    
+    private void exportFile() throws IOException {
+        for(int i = getIndexFirstTopElipse(); i <= getIndexLastTopElipse(); i++) {
+            fileOutputStream.write(intToByte(this.getSampleData()[i]), 0, Tools.dataSize);
+        }
+    }
 
     
 

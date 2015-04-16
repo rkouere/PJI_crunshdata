@@ -8,6 +8,8 @@ package com.datacrunshing.tools;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -26,6 +28,16 @@ public class Tools {
     public static final String ANSI_WHITE = "\u001B[37m";
     
     /**
+     * Display the help message
+     */
+    public static final String help =   
+                "This program can take the following arguments : \n" + 
+                ANSI_BLUE + "-info : displays the min, max and average measures, the size of the file if we cut it from the first top elipse and the size of the file if we cut from the top of the first elipse to the top of the last elipse.\n" + ANSI_RESET +
+                "\t-i filename : the name of the file to deal with\n" + 
+                "========\n" + 
+                " -combineAvg : takes n parameters and create a file containing an average of each measure\n" + 
+                "-resample : ";
+    /**
      * Le nombre de données que l'on lit après avoir trouvé une valeure.
      */
     public static final int sampleToParseToGetHighElipse = 1000;
@@ -35,7 +47,7 @@ public class Tools {
     public static final int dataSize = 4;
     /**
      * Takes a byte array and print a hexString.
-     * @param a byte aqrray
+     * @param a byte array
      * @return 
      */
     public static String byteArrayToHex(byte[] a) {
@@ -45,6 +57,18 @@ public class Tools {
         return sb.toString();
     }
     
+       /**
+     * Display a message in red and exits
+     * @param msg 
+     */
+    public static void displayInfo(String msg) {
+        System.out.println(ANSI_GREEN + msg  + ANSI_RESET);
+    }
+    
+    /**
+     * Display a message in red and stops the program
+     * @param msg 
+     */
     public static void displayErrorAndExit(String msg) {
         System.out.println(ANSI_RED + msg  + ANSI_BLACK);
         System.exit(-1);
@@ -63,6 +87,15 @@ public class Tools {
         for(int i = 0; i < tmp.length - 1; i++)
             path += tmp[i] + "/";
         return new FileOutputStream(path + fileName);
+    }
+    
+    public static List<String> arrayStringToList(String[] string) {
+        List<String> tmp = new ArrayList<>();
+        
+        for(String str:string) {
+            tmp.add(str);
+        }
+        return tmp;
     }
 
 }

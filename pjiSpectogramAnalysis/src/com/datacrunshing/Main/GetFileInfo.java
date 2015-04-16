@@ -13,12 +13,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
  * @author rkouere
  */
-public class AverageSingleSample extends Average {
+public class GetFileInfo extends Average {
     // the number of measures present in the file
     private int nbrMeasuresInFile = 0;
     private long maxValue;
@@ -29,8 +30,8 @@ public class AverageSingleSample extends Average {
     private int counter = 0;
     private int indexFirstTopElipse;
     private int indexLastTopElipse;
-
-
+    private int bestFit;
+    private String input = null;
     /**
      * Initialise les paramètres puis renseigne les variables.
      * Vérifie que la taille des samples est traitable.
@@ -42,7 +43,7 @@ public class AverageSingleSample extends Average {
      * @throws FileNotFoundException
      * @throws IOException 
      */
-    public AverageSingleSample(String[] args) throws FileNotFoundException, IOException {
+    public GetFileInfo(List<String> args) throws FileNotFoundException, IOException {
         super(args);
         this.nbrBytesInSample = this.samples[0].length();
         
@@ -59,9 +60,10 @@ public class AverageSingleSample extends Average {
         // on recupere les index du debut et de la fin du future fichiers
         this.indexFirstTopElipse = findFirstTopElipse();
         this.indexLastTopElipse = findLastTopElipse();
-
+        this.bestFit = this.indexLastTopElipse - this.indexFirstTopElipse;
     }
     
+ 
     /**
      * Imprime la valeur moyenne, minimum et maximum d'un fichier bin 
      * @throws IOException 
@@ -96,7 +98,7 @@ public class AverageSingleSample extends Average {
         System.out.println("La mesure maximum est de : " + this.maxValue);
         System.out.println("La mesure minimum est de : " + this.minValue);
         System.out.println("En decoupant à partir de la premiere elipse, il resterait " + (this.sampleData.length - this.indexFirstTopElipse)  + " samples.");
-        System.out.println("La taille optimal du fichier allant de lal premiere elipse a la derniere serait de " + (this.indexLastTopElipse - this.indexFirstTopElipse)  + " samples.");
+        System.out.println("La taille optimal du fichier (best fit) allant de la premiere elipse a la derniere serait de " + this.bestFit  + " samples.");
         
     }
     
@@ -122,6 +124,8 @@ public class AverageSingleSample extends Average {
      */
     public int findFirstTopElipse() {
         int indexMaxValue = 0;
+        // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
+        // This value is the top of the first elipse
         for(int i = indexMaxValue + 1; i < this.nbrMeasuresInFile; i++) {
             if(this.sampleData[i] < this.sampleData[indexMaxValue])
                 this.counter++;
@@ -144,6 +148,8 @@ public class AverageSingleSample extends Average {
      */
     private int findLastTopElipse() {
         int indexMaxValue = this.nbrMeasuresInFile - 1;
+        // we are going to go through all the samples from back to front up to the point where we have found a value that has n consecutive lower values.
+        // This value is the top of the last elipse
         for(int i = indexMaxValue - 1; i >= 0; i--) {
             if(this.sampleData[i] < this.sampleData[indexMaxValue])
                 this.counter++;
@@ -158,5 +164,30 @@ public class AverageSingleSample extends Average {
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
         Tools.displayErrorAndExit("[findStartFirstElipse] Nous aurions du trouver une valeure max.");
         return -1;
+    }
+    
+    //=================GETTER/SETTER=================
+    /**
+     *  
+     * @return the index of the top of the first elipse
+     */
+    public int getIndexFirstTopElipse() {
+        return indexFirstTopElipse;
+    }
+    
+    /**
+     *  
+     * @return the index of the top of the last elipse
+     */
+    public int getIndexLastTopElipse() {
+        return indexLastTopElipse;
+    }
+    
+    /**
+     *  
+     * @return the measures as an array of int
+     */
+    public int[] getSampleData() {
+        return sampleData;
     }
 }
