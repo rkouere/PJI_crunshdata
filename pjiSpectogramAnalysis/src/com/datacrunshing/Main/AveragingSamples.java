@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.List;
 
 /** 
  * Permets de prendre n fichiers binaire en entrée et de ressortir un fichier avec les valeures moyenne en sortie.
@@ -25,7 +26,7 @@ import java.util.Arrays;
  */
 public class AveragingSamples extends Average {
     private FileOutputStream fileOutputStream = null;
-
+    private String[] files = null;
     /** Initialise les variables.
      * Vérifie que l'on a au moins un fichier a traiter.
      * Ouvre les fichiers et verifie que ces fichiers ont la même taille.
@@ -34,9 +35,10 @@ public class AveragingSamples extends Average {
      * @param args
      * @throws FileNotFoundException 
      */
-    public AveragingSamples(String[] args) throws FileNotFoundException {
+    public AveragingSamples(List<String> args) throws FileNotFoundException {
         super(args);
-        this.fileOutputStream = Tools.openOutputStream(this.samples[0], "newSample.bin");
+        
+        this.fileOutputStream = Tools.openOutputStream(this.samples[0], this.output);
     }
     
     /**
