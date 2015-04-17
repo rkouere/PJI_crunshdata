@@ -40,7 +40,7 @@ public class Tools {
     /**
      * Le nombre de données que l'on lit après avoir trouvé une valeure.
      */
-    public static final int sampleToParseToGetHighElipse = 1000;
+    public static final int sampleToParseToGetHighSinusoid = 1000;
     /**
      * Taille des données (en octets). D'après nos calculs, les données sont codés sur 32 bits, littleendien.
      */

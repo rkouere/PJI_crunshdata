@@ -36,7 +36,7 @@ public class Average  {
         // on fait une copie des arguments
         this.arguments = args;
         getInputs();
-        if(this.arguments.get(0).equals("-o")) {
+        if((this.arguments.size() > 0) && this.arguments.get(0).equals("-o")) {
             setOutput();
         }
         this.samples = openFiles(this.input, this.numberOfSamples);

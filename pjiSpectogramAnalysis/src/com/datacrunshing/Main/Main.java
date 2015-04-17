@@ -19,7 +19,7 @@ public class Main {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         List<String> arguments = null;
         if(args.length < 3) {
-            Tools.displayErrorAndExit("Le programe prend au moins un argument. Tappez -h pour afficher l'aide.");
+            Tools.displayErrorAndExit(Tools.help);
         }
         else { 
             arguments = Tools.arrayStringToList(args);

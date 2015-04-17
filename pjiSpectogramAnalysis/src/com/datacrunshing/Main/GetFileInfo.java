@@ -28,16 +28,16 @@ public class GetFileInfo extends Average {
     private int[] sampleData;
     private long nbrBytesInSample;
     private int counter = 0;
-    private int indexFirstTopElipse;
-    private int indexLastTopElipse;
+    private int indexFirstTopSinusoidal;
+    private int indexLastTopSinusoidal;
     private int bestFit;
     private String input = null;
     /**
      * Initialise les paramètres puis renseigne les variables.
      * Vérifie que la taille des samples est traitable.
      * Copie les données du sample dans un tableau
-     * Recupere la position de la premiere elipse.
-     * Recupere la position de la derniere elipse.
+     * Recupere la position de la premiere sinusoidal.
+     * Recupere la position de la derniere sinusoidal.
      * 
      * @param args les arguments du programe
      * @throws FileNotFoundException
@@ -58,9 +58,9 @@ public class GetFileInfo extends Average {
         //on copie les données dans un tableau
         parseData();
         // on recupere les index du debut et de la fin du future fichiers
-        this.indexFirstTopElipse = findFirstTopElipse();
-        this.indexLastTopElipse = findLastTopElipse();
-        this.bestFit = this.indexLastTopElipse - this.indexFirstTopElipse;
+        this.indexFirstTopSinusoidal = findFirstTopSinusoidal();
+        this.indexLastTopSinusoidal = findLastTopSinusoidal();
+        this.bestFit = this.indexLastTopSinusoidal - this.indexFirstTopSinusoidal;
     }
     
  
@@ -97,8 +97,8 @@ public class GetFileInfo extends Average {
         System.out.println("La mesure moyenne est de : " + result/this.nbrMeasuresInFile);
         System.out.println("La mesure maximum est de : " + this.maxValue);
         System.out.println("La mesure minimum est de : " + this.minValue);
-        System.out.println("En decoupant à partir de la premiere elipse, il resterait " + (this.sampleData.length - this.indexFirstTopElipse)  + " samples.");
-        System.out.println("La taille optimal du fichier (best fit) allant de la premiere elipse a la derniere serait de " + this.bestFit  + " samples.");
+        System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.sampleData.length - this.indexFirstTopSinusoidal)  + " samples.");
+        System.out.println("La taille optimal du fichier (best fit) allant de la premiere sinusoidal a la derniere serait de " + this.bestFit  + " samples.");
         
     }
     
@@ -119,13 +119,13 @@ public class GetFileInfo extends Average {
     }
     
     /**
-     * Trouve la valeure correspondat au debut de la premiere elipse 
+     * Trouve la valeure correspondat au debut de la premiere sinusoidal 
      * @return L'index de la valeur
      */
-    public int findFirstTopElipse() {
+    public int findFirstTopSinusoidal() {
         int indexMaxValue = 0;
         // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
-        // This value is the top of the first elipse
+        // This value is the top of the first sinusoidal
         for(int i = indexMaxValue + 1; i < this.nbrMeasuresInFile; i++) {
             if(this.sampleData[i] < this.sampleData[indexMaxValue])
                 this.counter++;
@@ -133,23 +133,23 @@ public class GetFileInfo extends Average {
                 indexMaxValue = i;
                 this.counter = 0;
             }
-            if(this.counter == Tools.sampleToParseToGetHighElipse)
+            if(this.counter == Tools.sampleToParseToGetHighSinusoid)
                return indexMaxValue; 
         }
         
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
-        Tools.displayErrorAndExit("[findStartFirstElipse] Nous aurions du trouver une valeure max.");
+        Tools.displayErrorAndExit("[findStartFirstSinusoidal] Nous aurions du trouver une valeure max.");
         return -1;
     }
 
     /**
-     * Trouve la valeure correspondat à la derniere elipse 
+     * Trouve la valeure correspondat à la derniere sinusoidal 
      * @return L'index de la valeur
      */
-    private int findLastTopElipse() {
+    private int findLastTopSinusoidal() {
         int indexMaxValue = this.nbrMeasuresInFile - 1;
         // we are going to go through all the samples from back to front up to the point where we have found a value that has n consecutive lower values.
-        // This value is the top of the last elipse
+        // This value is the top of the last sinusoidal
         for(int i = indexMaxValue - 1; i >= 0; i--) {
             if(this.sampleData[i] < this.sampleData[indexMaxValue])
                 this.counter++;
@@ -157,30 +157,30 @@ public class GetFileInfo extends Average {
                 indexMaxValue = i;
                 this.counter = 0;
             }
-            if(this.counter == Tools.sampleToParseToGetHighElipse)
+            if(this.counter == Tools.sampleToParseToGetHighSinusoid)
                return indexMaxValue; 
         }
         
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
-        Tools.displayErrorAndExit("[findStartFirstElipse] Nous aurions du trouver une valeure max.");
+        Tools.displayErrorAndExit("[findStartFirstSinusoidal] Nous aurions du trouver une valeure max.");
         return -1;
     }
     
     //=================GETTER/SETTER=================
     /**
      *  
-     * @return the index of the top of the first elipse
+     * @return the index of the top of the first sinusoidal
      */
-    public int getIndexFirstTopElipse() {
-        return indexFirstTopElipse;
+    public int getIndexFirstTopSinusoidal() {
+        return indexFirstTopSinusoidal;
     }
     
     /**
      *  
-     * @return the index of the top of the last elipse
+     * @return the index of the top of the last sinusoidal
      */
-    public int getIndexLastTopElipse() {
-        return indexLastTopElipse;
+    public int getIndexLastTopSinusoidal() {
+        return indexLastTopSinusoidal;
     }
     
     /**
