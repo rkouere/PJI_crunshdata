@@ -68,9 +68,16 @@ public class GetFileInfo extends Average {
 
     }
     
-
+    /**
+     * Prints the number of sinusoides present betwenn the first top and the last
+     */
     private void getNbrSinusoides() {
-        System.out.println("OUICH !");
+        int compteur = 0;
+        for(int i = this.indexFirstTopSinusoidal + Tools.sampleToParseToGetHighSinusoid; i <= this.indexLastTopSinusoidal; i++) {
+            i = findFirstTopSinusoidal(i);
+            compteur++;
+        }
+        System.out.println("Ce sample contient " + compteur + " sinusoides.");
     }
  
     /**
