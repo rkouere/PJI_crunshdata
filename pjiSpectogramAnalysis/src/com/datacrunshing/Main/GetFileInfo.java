@@ -118,23 +118,30 @@ public class GetFileInfo extends Average {
         }        
     }
     
+    private int tmpFunction(int[] samples, int index) {
+        return samples[index];
+    }
     /**
      * Trouve la valeure correspondat au debut de la premiere sinusoidal 
      * @return L'index de la valeur
      */
     public int findFirstTopSinusoidal() {
         int indexMaxValue = 0;
+        int j = 0;
         // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
         // This value is the top of the first sinusoidal
-        for(int i = indexMaxValue + 1; i < this.nbrMeasuresInFile; i++) {
-            if(this.sampleData[i] < this.sampleData[indexMaxValue])
-                this.counter++;
-            else {
-                indexMaxValue = i;
-                this.counter = 0;
+        for(int i = indexMaxValue; i < (this.nbrMeasuresInFile - Tools.sampleToParseToGetHighSinusoid); i++) {
+            int currentMax = this.sampleData[i];
+            // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
+            for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
+                if(currentMax < tmpFunction(sampleData, i+j)) {
+                    currentMax = this.sampleData[i+j];
+                    i = i + j;
+                    break;
+                }
             }
-            if(this.counter == Tools.sampleToParseToGetHighSinusoid)
-               return indexMaxValue; 
+            if(j == Tools.sampleToParseToGetHighSinusoid)
+                return i;
         }
         
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
@@ -147,19 +154,23 @@ public class GetFileInfo extends Average {
      * @return L'index de la valeur
      */
     private int findLastTopSinusoidal() {
-        int indexMaxValue = this.nbrMeasuresInFile - 1;
+        int j = 0;
         // we are going to go through all the samples from back to front up to the point where we have found a value that has n consecutive lower values.
         // This value is the top of the last sinusoidal
-        for(int i = indexMaxValue - 1; i >= 0; i--) {
-            if(this.sampleData[i] < this.sampleData[indexMaxValue])
-                this.counter++;
-            else {
-                indexMaxValue = i;
-                this.counter = 0;
+        for(int i = this.nbrMeasuresInFile - 1; i >= (0+Tools.sampleToParseToGetHighSinusoid); i--) {
+            int currentMax = this.sampleData[i];
+            // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
+            for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
+                if(currentMax < tmpFunction(sampleData, i-j)) {
+                    currentMax = this.sampleData[i-j];
+                    i = i - j;
+                    break;
+                }
             }
-            if(this.counter == Tools.sampleToParseToGetHighSinusoid)
-               return indexMaxValue; 
+            if(j == Tools.sampleToParseToGetHighSinusoid)
+                return i;
         }
+        
         
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
         Tools.displayErrorAndExit("[findStartFirstSinusoidal] Nous aurions du trouver une valeure max.");
