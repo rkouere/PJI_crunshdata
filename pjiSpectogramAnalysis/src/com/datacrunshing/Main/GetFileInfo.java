@@ -45,11 +45,13 @@ public class GetFileInfo extends Average {
      */
     public GetFileInfo(List<String> args) throws FileNotFoundException, IOException {
         super(args);
+
         this.nbrBytesInSample = this.samples[0].length();
         
         // on verifie que le nombre de données présente dans le fichier ne va pas faire exploser notre ram
         if ((this.nbrBytesInSample/Tools.dataSize) > Integer.MAX_VALUE)
             Tools.displayErrorAndExit("Le fichier a traiter a plus de 2^32 byte. Cela ne va pas le faire");
+        
         
         // on calcul le nombre de mesures present dans le fichier
         this.nbrMeasuresInFile = safeLongToInt(this.nbrBytesInSample)/Tools.dataSize;
@@ -58,11 +60,18 @@ public class GetFileInfo extends Average {
         //on copie les données dans un tableau
         parseData();
         // on recupere les index du debut et de la fin du future fichiers
-        this.indexFirstTopSinusoidal = findFirstTopSinusoidal();
+        this.indexFirstTopSinusoidal = findFirstTopSinusoidal(0);
         this.indexLastTopSinusoidal = findLastTopSinusoidal();
         this.bestFit = this.indexLastTopSinusoidal - this.indexFirstTopSinusoidal;
+        if(this.arguments.contains("-nbrSinusoide"))
+            getNbrSinusoides();
+
     }
     
+
+    private void getNbrSinusoides() {
+        System.out.println("OUICH !");
+    }
  
     /**
      * Imprime la valeur moyenne, minimum et maximum d'un fichier bin 
@@ -125,12 +134,11 @@ public class GetFileInfo extends Average {
      * Trouve la valeure correspondat au debut de la premiere sinusoidal 
      * @return L'index de la valeur
      */
-    public int findFirstTopSinusoidal() {
-        int indexMaxValue = 0;
-        int j = 0;
+    public int findFirstTopSinusoidal(int start) {
+        int j =  start;
         // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
         // This value is the top of the first sinusoidal
-        for(int i = indexMaxValue; i < (this.nbrMeasuresInFile - Tools.sampleToParseToGetHighSinusoid); i++) {
+        for(int i = start; i < (this.nbrMeasuresInFile - Tools.sampleToParseToGetHighSinusoid); i++) {
             int currentMax = this.sampleData[i];
             // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
             for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){

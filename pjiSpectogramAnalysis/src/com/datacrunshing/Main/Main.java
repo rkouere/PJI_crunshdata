@@ -28,6 +28,9 @@ public class Main {
             arguments.remove(0);
             
             switch(arg) {
+                case "-h":
+                    Tools.displayErrorAndExit(Tools.help);
+                    break;
                 case "-info":
                     new GetFileInfo(arguments).printFileInfo();
                     break;
