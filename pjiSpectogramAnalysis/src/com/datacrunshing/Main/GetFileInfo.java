@@ -32,6 +32,9 @@ public class GetFileInfo extends Average {
     private int indexLastTopSinusoidal;
     private int bestFit;
     private String input = null;
+    private int nbrSinusoidals = 0;
+    
+    
     /**
      * Initialise les paramètres puis renseigne les variables.
      * Vérifie que la taille des samples est traitable.
@@ -45,9 +48,7 @@ public class GetFileInfo extends Average {
      */
     public GetFileInfo(List<String> args) throws FileNotFoundException, IOException {
         super(args);
-
         this.nbrBytesInSample = this.samples[0].length();
-        
         // on verifie que le nombre de données présente dans le fichier ne va pas faire exploser notre ram
         if ((this.nbrBytesInSample/Tools.dataSize) > Integer.MAX_VALUE)
             Tools.displayErrorAndExit("Le fichier a traiter a plus de 2^32 byte. Cela ne va pas le faire");
@@ -59,25 +60,33 @@ public class GetFileInfo extends Average {
         
         //on copie les données dans un tableau
         parseData();
+
         // on recupere les index du debut et de la fin du future fichiers
         this.indexFirstTopSinusoidal = findFirstTopSinusoidal(0);
-        this.indexLastTopSinusoidal = findLastTopSinusoidal();
+
+        this.indexLastTopSinusoidal =  findLastTopSinusoidal();
+
         this.bestFit = this.indexLastTopSinusoidal - this.indexFirstTopSinusoidal;
-        if(this.arguments.contains("-nbrSinusoide"))
-            getNbrSinusoides();
+        if(this.arguments.contains("-nbrSinusoide")) {
+            //getNbrSinusoidals();
+            System.out.println("Ce sample contient " + this.nbrSinusoidals + " sinusoides.");
+        }
+
 
     }
     
     /**
-     * Prints the number of sinusoides present betwenn the first top and the last
+     * Will go through all the samples to find the number of sinusoidals present in the file and the 
+     * @return the index of the last Sinusoidal
      */
-    private void getNbrSinusoides() {
-        int compteur = 0;
-        for(int i = this.indexFirstTopSinusoidal + Tools.sampleToParseToGetHighSinusoid; i <= this.indexLastTopSinusoidal; i++) {
+    private int getNbrSinusoidals() {
+        int i = 0;
+        for(i = this.indexFirstTopSinusoidal + Tools.sampleToParseToGetHighSinusoid; i <= this.indexLastTopSinusoidal; i++) {
+            //System.out.println(i d);
             i = findFirstTopSinusoidal(i);
-            compteur++;
+            this.nbrSinusoidals++;
         }
-        System.out.println("Ce sample contient " + compteur + " sinusoides.");
+        return i;
     }
  
     /**
@@ -134,8 +143,28 @@ public class GetFileInfo extends Average {
         }        
     }
     
-    private int tmpFunction(int[] samples, int index) {
-        return samples[index];
+    private int getAverageMeasure(int[] samples, int index) {
+        long average = 0;
+        // we want to use the samples on the left of the measure and on the right of the measure
+        int i;
+        int loops = (Tools.averagePrecision/2);
+        int start = loops;
+
+        // beware ! if we are at the begining of the file, the start at 0
+        if(index < (Tools.averagePrecision/2)) {
+            start = 0;
+            loops = loops + index;
+        }
+
+        for(i = -start; i < loops; i++) {
+            average += samples[i + index];            
+        }
+                       
+        // start + (Tools.averagePrecision/2) : because if we are at the begning of the file, the total number of 
+        // samples used will not be Tools.averagePrecision. We therefore have to make sure that we use start to get 
+        // the diviser
+        System.out.println("i = " + i);
+        return safeLongToInt(average/(i));
     }
     /**
      * Trouve la valeure correspondat au debut de la premiere sinusoidal 
@@ -143,14 +172,17 @@ public class GetFileInfo extends Average {
      */
     public int findFirstTopSinusoidal(int start) {
         int j =  start;
+        int tmp = 0;
         // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
         // This value is the top of the first sinusoidal
+        // We stop before the end minux the number of samples we use to find the first top. 
         for(int i = start; i < (this.nbrMeasuresInFile - Tools.sampleToParseToGetHighSinusoid); i++) {
             int currentMax = this.sampleData[i];
             // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
             for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
-                if(currentMax < tmpFunction(sampleData, i+j)) {
-                    currentMax = this.sampleData[i+j];
+                tmp = getAverageMeasure(sampleData, i+j);
+                if(currentMax < tmp) {
+                    currentMax = tmp;
                     i = i + j;
                     break;
                 }
@@ -176,8 +208,8 @@ public class GetFileInfo extends Average {
             int currentMax = this.sampleData[i];
             // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
             for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
-                if(currentMax < tmpFunction(sampleData, i-j)) {
-                    currentMax = this.sampleData[i-j];
+                if(currentMax < this.sampleData[i - j]) {
+                    currentMax = this.sampleData[i - j];
                     i = i - j;
                     break;
                 }

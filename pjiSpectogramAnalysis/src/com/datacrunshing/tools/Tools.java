@@ -27,6 +27,8 @@ public class Tools {
     public static final String ANSI_CYAN = "\u001B[36m";
     public static final String ANSI_WHITE = "\u001B[37m";
     
+    
+    
     /**
      * Display the help message
      */
@@ -42,9 +44,17 @@ public class Tools {
      */
     public static final int sampleToParseToGetHighSinusoid = 1000;
     /**
+     * Le nombre de valeur que l'on lit a droite et a gauche de chaque sample.
+     */
+    public static final int averagePrecision = 200;
+
+    /**
      * Taille des données (en octets). D'après nos calculs, les données sont codés sur 32 bits, littleendien.
      */
     public static final int dataSize = 4;
+
+    
+    
     /**
      * Takes a byte array and print a hexString.
      * @param a byte array
