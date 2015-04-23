@@ -6,13 +6,8 @@
 package com.datacrunshing.Main;
 
 import com.datacrunshing.tools.Tools;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,7 +20,7 @@ public class GetFileInfo extends Average {
     private long maxValue;
     private long minValue;
 
-    private int[] sampleData;
+    private int[] data;
     private long nbrBytesInSample;
     private int counter = 0;
     private int indexFirstTopSinusoidal;
@@ -48,6 +43,7 @@ public class GetFileInfo extends Average {
      */
     public GetFileInfo(List<String> args) throws FileNotFoundException, IOException {
         super(args);
+        
         this.nbrBytesInSample = this.samples[0].length();
         // on verifie que le nombre de données présente dans le fichier ne va pas faire exploser notre ram
         if ((this.nbrBytesInSample/Tools.dataSize) > Integer.MAX_VALUE)
@@ -56,7 +52,7 @@ public class GetFileInfo extends Average {
         
         // on calcul le nombre de mesures present dans le fichier
         this.nbrMeasuresInFile = safeLongToInt(this.nbrBytesInSample)/Tools.dataSize;
-        this.sampleData = new int[this.nbrMeasuresInFile];
+        this.data = new int[this.nbrMeasuresInFile];
         
         //on copie les données dans un tableau
         parseData();
@@ -68,7 +64,7 @@ public class GetFileInfo extends Average {
 
         this.bestFit = this.indexLastTopSinusoidal - this.indexFirstTopSinusoidal;
         if(this.arguments.contains("-nbrSinusoide")) {
-            //getNbrSinusoidals();
+            getNbrSinusoidals();
             System.out.println("Ce sample contient " + this.nbrSinusoidals + " sinusoides.");
         }
 
@@ -82,8 +78,9 @@ public class GetFileInfo extends Average {
     private int getNbrSinusoidals() {
         int i = 0;
         for(i = this.indexFirstTopSinusoidal + Tools.sampleToParseToGetHighSinusoid; i <= this.indexLastTopSinusoidal; i++) {
-            //System.out.println(i d);
             i = findFirstTopSinusoidal(i);
+            System.out.println("Sinusoid = " + i);
+
             this.nbrSinusoidals++;
         }
         return i;
@@ -105,7 +102,7 @@ public class GetFileInfo extends Average {
         */
         
         for(int i = 0; i < this.nbrMeasuresInFile; i++) {
-            tmp = this.sampleData[i];
+            tmp = this.data[i];
             // on met à jours les valeurs max et min, si besoin
             if(tmp > this.maxValue) {
                 //System.out.println(tmp);
@@ -122,7 +119,7 @@ public class GetFileInfo extends Average {
         System.out.println("La mesure moyenne est de : " + result/this.nbrMeasuresInFile);
         System.out.println("La mesure maximum est de : " + this.maxValue);
         System.out.println("La mesure minimum est de : " + this.minValue);
-        System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.sampleData.length - this.indexFirstTopSinusoidal)  + " samples.");
+        System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.data.length - this.indexFirstTopSinusoidal)  + " samples.");
         System.out.println("La taille optimal du fichier (best fit) allant de la premiere sinusoidal a la derniere serait de " + this.bestFit  + " samples.");
         
     }
@@ -134,12 +131,11 @@ public class GetFileInfo extends Average {
     private void parseData() throws IOException {
         byte[] buffer = new byte[Tools.dataSize];
         long result = 0;
-        int counter = 0;
         long tmp;
 
         while (fileInputStream[0].read(buffer) != -1)     
         {
-            this.sampleData[counter++] = safeLongToInt(byteToLong(buffer));
+            this.data[counter++] = safeLongToInt(byteToLong(buffer));
         }        
     }
     
@@ -147,25 +143,21 @@ public class GetFileInfo extends Average {
         long average = 0;
         // we want to use the samples on the left of the measure and on the right of the measure
         int i;
-        int loops = (Tools.averagePrecision/2);
-        int start = loops;
+        
+        // we never start at 0
+        int indexInside = index + Tools.averagePrecision;
 
-        // beware ! if we are at the begining of the file, the start at 0
-        if(index < (Tools.averagePrecision/2)) {
-            start = 0;
-            loops = loops + index;
-        }
-
-        for(i = -start; i < loops; i++) {
-            average += samples[i + index];            
+        for(i = -Tools.averagePrecision/2; i < Tools.averagePrecision/2; i++) {
+            
+            average += samples[i + indexInside];            
         }
                        
         // start + (Tools.averagePrecision/2) : because if we are at the begning of the file, the total number of 
         // samples used will not be Tools.averagePrecision. We therefore have to make sure that we use start to get 
         // the diviser
-        System.out.println("i = " + i);
-        return safeLongToInt(average/(i));
+        return safeLongToInt(average/Tools.averagePrecision);
     }
+
     /**
      * Trouve la valeure correspondat au debut de la premiere sinusoidal 
      * @return L'index de la valeur
@@ -176,19 +168,24 @@ public class GetFileInfo extends Average {
         // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
         // This value is the top of the first sinusoidal
         // We stop before the end minux the number of samples we use to find the first top. 
-        for(int i = start; i < (this.nbrMeasuresInFile - Tools.sampleToParseToGetHighSinusoid); i++) {
-            int currentMax = this.sampleData[i];
+        // Tools.sampleToParseToGetHighSinusoid + Tools.averagePrecision : we do it because we start parsing the files at Tools.averagePrecision
+        for(int i = start; i < (this.nbrMeasuresInFile - (Tools.sampleToParseToGetHighSinusoid - Tools.averagePrecision)); i++) {
+            int currentMax = getAverageMeasure(data, i);
             // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
             for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
-                tmp = getAverageMeasure(sampleData, i+j);
+                tmp = getAverageMeasure(data, i + j);
+                // if the current max if lower that the average datas, the average datas are becoming the new max
                 if(currentMax < tmp) {
                     currentMax = tmp;
                     i = i + j;
+                    System.out.println("I = " + i);
                     break;
                 }
             }
-            if(j == Tools.sampleToParseToGetHighSinusoid)
+            if(j == Tools.sampleToParseToGetHighSinusoid) {
+                System.out.println("current max = " + currentMax + " tmp " + tmp + " i = " + i);
                 return i;
+            }
         }
         
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
@@ -205,11 +202,11 @@ public class GetFileInfo extends Average {
         // we are going to go through all the samples from back to front up to the point where we have found a value that has n consecutive lower values.
         // This value is the top of the last sinusoidal
         for(int i = this.nbrMeasuresInFile - 1; i >= (0+Tools.sampleToParseToGetHighSinusoid); i--) {
-            int currentMax = this.sampleData[i];
+            int currentMax = this.data[i];
             // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
             for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
-                if(currentMax < this.sampleData[i - j]) {
-                    currentMax = this.sampleData[i - j];
+                if(currentMax < this.data[i - j]) {
+                    currentMax = this.data[i - j];
                     i = i - j;
                     break;
                 }
@@ -245,7 +242,7 @@ public class GetFileInfo extends Average {
      *  
      * @return the measures as an array of int
      */
-    public int[] getSampleData() {
-        return sampleData;
+    public int[] getData() {
+        return data;
     }
 }

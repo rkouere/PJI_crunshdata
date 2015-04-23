@@ -71,7 +71,8 @@ public class Average  {
         
         List<String> tmp = new ArrayList<>(this.arguments);
         for(int i = 0; i < this.arguments.size(); i++) {
-            if(this.arguments.get(i).contains("-"))  {
+            // if we have another argument
+            if(this.arguments.get(i).startsWith("-"))  {
                 this.arguments = tmp;
                 return this.arguments.size() - this.numberOfSamples;
             }
@@ -105,7 +106,9 @@ public class Average  {
      */
     public void openInputStreams()  throws FileNotFoundException {
         this.fileInputStream = new InputStream[this.numberOfSamples];
+        
         for(int i = 0; i < this.numberOfSamples; i++) {
+            
             this.fileInputStream[i] = new BufferedInputStream(new FileInputStream(this.samples[i]));
         }
     }

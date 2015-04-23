@@ -32,7 +32,7 @@ public class Resample extends GetFileInfo {
     
     private void exportFile() throws IOException {
         for(int i = getIndexFirstTopSinusoidal(); i <= getIndexLastTopSinusoidal(); i++) {
-            fileOutputStream.write(intToByte(this.getSampleData()[i]), 0, Tools.dataSize);
+            fileOutputStream.write(intToByte(this.getData()[i]), 0, Tools.dataSize);
         }
     }
 
