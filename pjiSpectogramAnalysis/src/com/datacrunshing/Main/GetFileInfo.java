@@ -15,12 +15,17 @@ import java.util.List;
  * @author rkouere
  */
 public class GetFileInfo extends Average {
-    // the number of measures present in the file
+    /**
+     * the number of measures present in the file
+     */
     private int nbrMeasuresInFile = 0;
     private long maxValue;
     private long minValue;
-
+    /**
+     * An array representing the samples
+     */
     private int[] data;
+    
     private long nbrBytesInSample;
     private int counter = 0;
     private int indexFirstTopSinusoidal;
@@ -58,17 +63,18 @@ public class GetFileInfo extends Average {
         parseData();
 
         // on recupere les index du debut et de la fin du future fichiers
-        this.indexFirstTopSinusoidal = findFirstTopSinusoidal(0);
+        this.indexFirstTopSinusoidal = getIndexNextTopSinusoidal(Tools.averagePrecision);
 
-        this.indexLastTopSinusoidal =  findLastTopSinusoidal();
 
-        this.bestFit = this.indexLastTopSinusoidal - this.indexFirstTopSinusoidal;
         if(this.arguments.contains("-nbrSinusoide")) {
+
+            //Tools.printData(data, 10);
             getNbrSinusoidals();
-            System.out.println("Ce sample contient " + this.nbrSinusoidals + " sinusoides.");
+            //System.out.println("Ce sample contient " + this.nbrSinusoidals + " sinusoides.");
         }
-
-
+        System.out.println("this.indexLastTopSinusoidal = " + this.indexLastTopSinusoidal + " nbrsampes = " + this.nbrMeasuresInFile);
+        this.bestFit = this.indexLastTopSinusoidal - this.indexFirstTopSinusoidal;
+        
     }
     
     /**
@@ -77,13 +83,19 @@ public class GetFileInfo extends Average {
      */
     private int getNbrSinusoidals() {
         int i = 0;
-        for(i = this.indexFirstTopSinusoidal + Tools.sampleToParseToGetHighSinusoid; i <= this.indexLastTopSinusoidal; i++) {
-            i = findFirstTopSinusoidal(i);
-            System.out.println("Sinusoid = " + i);
-
-            this.nbrSinusoidals++;
+        int cmpt = 0;
+        for(i = this.indexFirstTopSinusoidal; 
+                i <= (this.nbrMeasuresInFile - 
+                (Tools.sampleToParseToGetHighSinusoid + 
+                Tools.averagePrecision)); i++) {
+            i = getIndexNextTopSinusoidal(i);
+            if(i == -1)
+                return cmpt;
+            this.indexLastTopSinusoidal = i;
+            System.out.println("this.indexLastTopSinusoidal = " + this.indexLastTopSinusoidal);
+            cmpt++;
         }
-        return i;
+       return -1;
     }
  
     /**
@@ -145,81 +157,78 @@ public class GetFileInfo extends Average {
         int i;
         
         // we never start at 0
-        int indexInside = index + Tools.averagePrecision;
+        if(index < Tools.averagePrecision) {
+            return -1;
+        }
 
         for(i = -Tools.averagePrecision/2; i < Tools.averagePrecision/2; i++) {
-            
-            average += samples[i + indexInside];            
-        }
-                       
-        // start + (Tools.averagePrecision/2) : because if we are at the begning of the file, the total number of 
-        // samples used will not be Tools.averagePrecision. We therefore have to make sure that we use start to get 
-        // the diviser
+            average += samples[i + index];            
+        }             
+ 
         return safeLongToInt(average/Tools.averagePrecision);
     }
 
+
+    /**
+     * Finds the lowest point from the index
+     * @param index The starting point of the test
+     * @return The index of the lowest point
+     */
+    private int findLowestSample(int index) {
+        int currentMax = getAverageMeasure(data, index);
+        int tmp = 0;
+        for(int i = index + 1; i < (this.nbrMeasuresInFile - (Tools.sampleToParseToGetHighSinusoid + Tools.averagePrecision)); i++) {
+            tmp = getAverageMeasure(data, i);
+            if(tmp > currentMax)
+                return i;
+        }
+        return -1;
+    }
     /**
      * Trouve la valeure correspondat au debut de la premiere sinusoidal 
      * @return L'index de la valeur
      */
-    public int findFirstTopSinusoidal(int start) {
-        int j =  start;
+    public int getIndexNextTopSinusoidal(int start) {
         int tmp = 0;
-        // we are going to go through all the samples up to the point where we have found a value that has n consecutive lower values.
+        int j;
+        // we are going to go through all the samples up to the point where we 
+        // have found a value that has n consecutive lower values.
         // This value is the top of the first sinusoidal
         // We stop before the end minux the number of samples we use to find the first top. 
-        // Tools.sampleToParseToGetHighSinusoid + Tools.averagePrecision : we do it because we start parsing the files at Tools.averagePrecision
-        for(int i = start; i < (this.nbrMeasuresInFile - (Tools.sampleToParseToGetHighSinusoid - Tools.averagePrecision)); i++) {
+        // Tools.sampleToParseToGetHighSinusoid + Tools.averagePrecision : we do 
+        // it because we start parsing the files at Tools.averagePrecision
+        int indexOfFirstSampleGoingUp = findLowestSample(start);
+        if(indexOfFirstSampleGoingUp == -1){
+            return -1;
+        }
+        for(int i = indexOfFirstSampleGoingUp; 
+                i < (this.nbrMeasuresInFile - (Tools.sampleToParseToGetHighSinusoid + Tools.averagePrecision)); 
+                i++) {
             int currentMax = getAverageMeasure(data, i);
-            // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
+            // we go through all the samples. If we find a value higher that the current max, 
+            // it becomes our new gighest value
             for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
                 tmp = getAverageMeasure(data, i + j);
                 // if the current max if lower that the average datas, the average datas are becoming the new max
                 if(currentMax < tmp) {
                     currentMax = tmp;
                     i = i + j;
-                    System.out.println("I = " + i);
                     break;
                 }
             }
             if(j == Tools.sampleToParseToGetHighSinusoid) {
-                System.out.println("current max = " + currentMax + " tmp " + tmp + " i = " + i);
+                //System.out.println("cwhurrent max = " + currentMax + " tmp " + tmp + " i = " + i);
+                // since the function does not return the indes from the begining of the file 
+                // but from Tools.averagePrecision we need to take this into account in the value returned  
                 return i;
             }
         }
         
         // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
-        Tools.displayErrorAndExit("[findStartFirstSinusoidal] Nous aurions du trouver une valeure max.");
         return -1;
     }
 
-    /**
-     * Trouve la valeure correspondat à la derniere sinusoidal 
-     * @return L'index de la valeur
-     */
-    private int findLastTopSinusoidal() {
-        int j = 0;
-        // we are going to go through all the samples from back to front up to the point where we have found a value that has n consecutive lower values.
-        // This value is the top of the last sinusoidal
-        for(int i = this.nbrMeasuresInFile - 1; i >= (0+Tools.sampleToParseToGetHighSinusoid); i--) {
-            int currentMax = this.data[i];
-            // we go through all the samples. If we find a value higher that the current max, it becomes our new gighest value
-            for(j = 0; j < Tools.sampleToParseToGetHighSinusoid; j++){
-                if(currentMax < this.data[i - j]) {
-                    currentMax = this.data[i - j];
-                    i = i - j;
-                    break;
-                }
-            }
-            if(j == Tools.sampleToParseToGetHighSinusoid)
-                return i;
-        }
-        
-        
-        // si on a pas trouvé de max, c'est que quelque chose de très très problématique est arrivé dans le programe.
-        Tools.displayErrorAndExit("[findStartFirstSinusoidal] Nous aurions du trouver une valeure max.");
-        return -1;
-    }
+
     
     //=================GETTER/SETTER=================
     /**

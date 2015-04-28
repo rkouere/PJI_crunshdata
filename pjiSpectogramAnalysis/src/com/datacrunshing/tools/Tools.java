@@ -42,17 +42,25 @@ public class Tools {
     /**
      * Le nombre de données que l'on lit après avoir trouvé une valeure.
      */
-    public static final int sampleToParseToGetHighSinusoid = 1000;
+    public static final int sampleToParseToGetHighSinusoid = 200;
+    
     /**
      * Le nombre de valeur que l'on lit a droite et a gauche de chaque sample.
      */
-    public static final int averagePrecision = 200;
+    public static final int averagePrecision = 1000;
 
     /**
      * Taille des données (en octets). D'après nos calculs, les données sont codés sur 32 bits, littleendien.
      */
     public static final int dataSize = 4;
-
+    
+    public static final void printData(int[] data, int nbrPrintPerLines){
+        for (int i = 0; i < data.length; i++) {
+            System.out.print(data[i] + "  ");
+            if(i % nbrPrintPerLines == 0)
+                System.out.println("");
+        }
+    }
     
     
     /**
