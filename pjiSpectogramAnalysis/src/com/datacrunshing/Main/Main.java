@@ -18,7 +18,7 @@ import java.util.List;
 public class Main {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         List<String> arguments = null;
-        if(args.length < 3) {
+        if(args.length < 1) {
             Tools.displayErrorAndExit(Tools.help);
         }
         else { 
@@ -42,6 +42,9 @@ public class Main {
                     break;
                 case "-test":
                     new Average(arguments);
+                    break;
+                case "-generateSinusoid":
+                    new CreateSinusoidal(arguments.get(0), arguments.get(1), 2100000000, 20480000);
                     break;
                 default:
                     Tools.displayErrorAndExit("Le programe prend au moins un argument. Tappez -h pour afficher l'aide.");

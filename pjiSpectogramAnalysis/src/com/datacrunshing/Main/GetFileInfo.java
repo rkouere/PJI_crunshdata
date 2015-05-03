@@ -123,7 +123,7 @@ public class GetFileInfo extends Average {
             if(tmp < this.minValue) {
                 this.minValue = tmp;
             }
-
+//            System.out.println(this.data[i]);
             // on ajoute la valeur à notre resultat final
             result += tmp;
             

@@ -31,7 +31,9 @@ public class Average  {
     public List<String> input = new ArrayList<String>();
     public String output = "newSample.bin";
 
-    
+    public Average(){
+        
+    }
     public Average(List<String> args)  throws FileNotFoundException {
         // on fait une copie des arguments
         this.arguments = args;

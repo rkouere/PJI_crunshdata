@@ -38,7 +38,8 @@ public class Tools {
                 "\t-i filename : the name of the file to deal with\n" + 
                 "========\n" + 
                 " -combineAvg : takes n parameters and create a file containing an average of each measure\n" + 
-                "-resample : ";
+                "-resample : "
+            + "-generateSinusoid";
     /**
      * Le nombre de données que l'on lit après avoir trouvé une valeure.
      */
