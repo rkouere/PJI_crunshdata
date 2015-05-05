@@ -35,16 +35,13 @@ public class Main {
                     new GetFileInfo(arguments).printFileInfo();
                     break;
                 case "-combineAvg":
-                    new AveragingSamples(arguments).exportFile();
+                    new CombineAvg(arguments).exportFile();
                     break;
                 case "-resample":
                     new Resample(arguments);
                     break;
-                case "-test":
-                    new Average(arguments);
-                    break;
                 case "-generateSinusoid":
-                    new CreateSinusoidal(arguments.get(0), arguments.get(1), 2100000000, 20480000);
+                    new CreateSinusoidal(arguments.get(0), arguments.get(1), 2100000000, 20500000);
                     break;
                 default:
                     Tools.displayErrorAndExit("Le programe prend au moins un argument. Tappez -h pour afficher l'aide.");

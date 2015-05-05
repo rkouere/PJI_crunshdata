@@ -14,7 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
- * Exports a file from the top of the first elipse to the top of the last elipse
+ * Exports a file from the top of the first sinusoidal to the top of the last sinusoidal
  * @author rkouere
  */
 public class Resample extends GetFileInfo {
@@ -24,14 +24,17 @@ public class Resample extends GetFileInfo {
     public Resample(List<String> args) throws FileNotFoundException, IOException {
         super(args);
         
-        this.fileOutputStream = Tools.openOutputStream(this.samples[0], "newSample.bin");
+        this.fileOutputStream = Tools.openOutputStream(this.samples[0], this.output);
         exportFile();
         this.fileOutputStream.close();
     }
     
-    
+    /**
+     * Will export a new file with the data going from the first sinusoidal to the last
+     * @throws IOException 
+     */
     private void exportFile() throws IOException {
-        for(int i = getIndexFirstTopSinusoidal(); i <= getIndexLastTopSinusoidal(); i++) {
+        for(int i = getFirstTop(); i <= getLastTop(); i++) {
             fileOutputStream.write(intToByte(this.getData()[i]), 0, Tools.dataSize);
         }
     }

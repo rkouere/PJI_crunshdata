@@ -35,15 +35,24 @@ public class Tools {
     public static final String help =   
                 "This program can take the following arguments : \n" + 
                 ANSI_BLUE + "-info : displays the min, max and average measures, the size of the file if we cut it from the first top elipse and the size of the file if we cut from the top of the first elipse to the top of the last elipse.\n" + ANSI_RESET +
-                "\t-i filename : the name of the file to deal with\n" + 
+                "[options]\n" +
+                "\t-i filename : the name of the input\n" + 
+                "\t[-sinGap] : prints the gap between each sinusoidal top\n" + 
                 "========\n" + 
-                " -combineAvg : takes n parameters and create a file containing an average of each measure\n" + 
-                "-resample : "
-            + "-generateSinusoid";
+                ANSI_BLUE + " -combineAvg : takes n parameters and create a file containing an average of each measure\n" +  ANSI_RESET +
+                "[options]\n" +
+                "\t[-o] filename : the name of the file to output (default = 'resampled.bin')\n" + 
+                "========\n" + 
+                ANSI_BLUE + "-resample : will export a file from the top of the first elipse to the top of the last elipse \n" + ANSI_RESET +
+               "[options]\n" +
+                "\t-i filename : the name of the input\n" + 
+                "\t[-o] filename : the name of the file to output (default = 'resampled.bin')\n" + 
+                "========\n" + 
+                ANSI_BLUE + "-generateSinusoid : generates a 'perfect' sinusoidal. Usefull for debugging purposes." + ANSI_RESET;
     /**
      * Le nombre de données que l'on lit après avoir trouvé une valeure.
      */
-    public static final int sampleToParseToGetHighSinusoid = 200;
+    public static final int sampleToParseAfter = 500;
     
     /**
      * Le nombre de valeur que l'on lit a droite et a gauche de chaque sample.
@@ -94,7 +103,7 @@ public class Tools {
     }
     
     /**
-     * Ouvre un stream
+     * Ouvre un stream.
      * @param sample
      * @param fileName
      * @return

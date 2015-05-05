@@ -17,10 +17,10 @@ import java.io.IOException;
  */
 public class CreateSinusoidal {
     private int maxValue = 2147417723;
-    int sizeSinusoid = 20480070;
+    private int sizeSinusoid = 20480070;
     private int[] data = null;
     private FileOutputStream fileOutputStream = null;
-    
+    private int nbrSinusoidals = 0;
     
     public CreateSinusoidal(String fileName, String path, int maxValue, int sizeSinusoid) throws FileNotFoundException, IOException {
         this.maxValue = maxValue;
@@ -52,8 +52,10 @@ public class CreateSinusoidal {
                 
             }
             
-            if(cmpt == this.maxValue)
+            if(cmpt == this.maxValue){
                 goingUp = false;
+                this.nbrSinusoidals++;
+            }
 
             else if(cmpt == -this.maxValue)
                 goingUp = true;
@@ -67,6 +69,7 @@ public class CreateSinusoidal {
             fileOutputStream.write(avg.intToByte(this.data[i]), 0, Tools.dataSize);
         }
         this.fileOutputStream.close();
+        System.out.println("This file has " + this.nbrSinusoidals + " sinusoidals.");
     }
     
     private void printSinusoidal() {

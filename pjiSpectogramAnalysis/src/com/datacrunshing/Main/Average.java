@@ -29,7 +29,7 @@ public class Average  {
     public File[] samples = null;
     public List<String> arguments = new ArrayList<String>();
     public List<String> input = new ArrayList<String>();
-    public String output = "newSample.bin";
+    public String output = "resampled.bin";
 
     public Average(){
         
@@ -37,12 +37,15 @@ public class Average  {
     public Average(List<String> args)  throws FileNotFoundException {
         // on fait une copie des arguments
         this.arguments = args;
+        if(args.size() == 0)
+            Tools.displayErrorAndExit(Tools.help);
         getInputs();
         
         // if we specifie a file for output, let's define it now
         if((this.arguments.size() > 0) && this.arguments.get(0).equals("-o")) {
             setOutput();
         }
+        
         
         this.samples = openFiles(this.input, this.numberOfSamples);
         openInputStreams();
