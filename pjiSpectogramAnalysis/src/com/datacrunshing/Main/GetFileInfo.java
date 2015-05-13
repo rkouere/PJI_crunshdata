@@ -34,11 +34,11 @@ public class GetFileInfo extends Average {
      */
     private int[] data;
     /**
-     * The indexes of each top in the file
+     * The intervals between the top of each sinudoidals
      */
-    private List<Integer> interval_index
+    private List<Integer> intervals
 ;    /**
-     * The interval between the top of each sinudoidals
+     * The indexes of each top in the file
      */
     private List<Integer> position_index;
     /**
@@ -60,8 +60,14 @@ public class GetFileInfo extends Average {
      * The size of the sample in bites
      */
     private long nbrBytesInSample;
-    
-    
+    /**
+     * The value of the sample most likely to show the most accurate top
+     */
+    private int bestTop;
+    /**
+     * The value of the most likely "clean" amplitude
+     */
+    private int amp;
     
     /**
      * Initialise les paramètres puis renseigne les variables.
@@ -77,7 +83,7 @@ public class GetFileInfo extends Average {
     public GetFileInfo(List<String> args) throws FileNotFoundException, IOException {
         super(args);
         this.position_index = new ArrayList<>();
-        this.interval_index = new ArrayList<>();
+        this.intervals = new ArrayList<>();
         this.nbrBytesInSample = this.samples[0].length();
         // on verifie que le nombre de données présente dans le fichier ne va pas faire exploser notre ram
         if ((this.nbrBytesInSample/Tools.dataSize) > Integer.MAX_VALUE)
@@ -93,20 +99,67 @@ public class GetFileInfo extends Average {
         copyData();
         // we get the index of each top of each sinusoidal
         getNbrSinusoidals();
+        
         // we set the data of the first and of the last sinusoidal
         setFirstLastTop();
         setIntervals(this.position_index);
         if(args.contains("-rmNoise")) {
-            this.poids = new int[this.interval_index.size()];
-            poid(this.interval_index, 0.9);
-            for(int i = 0; i < this.interval_index.size(); i++)
-                System.out.println(this.poids[i]);
+            this.poids = new int[this.intervals.size()];
+            poid(this.intervals, Tools.epsilon);
+            this.bestTop = Tools.maxIntArray(this.poids);
+            this.amp = avergage_amp(this.position_index.get(this.bestTop), this.intervals.get(this.bestTop));
         }
         if(args.contains("-sinGaps")) {
-            printGapBetweenSinusoidals(this.interval_index);
+            printGapBetweenSinusoidals(this.intervals);
         }
     }
     
+    /**
+     * Calculates the average amplitude if using the most likely average interval.
+     * This function will add the values of each most probable top and calculate the average.
+     * We noticed that some of the values we got from the parsing of the data were negative. 
+     * We have therefore decided to stop using them if they are too low.
+     * @param position_index The index of the sample with the top most likely to be at the top.
+     * @param interval_index 
+     * @return 
+     */
+    private int avergage_amp(Integer position_index, Integer interval) {
+        long amp = 0;
+        int i = position_index;
+        int cpt = 0;
+        double maxVal = this.maxValue * Tools.epsilon;
+        System.out.println("data = " + this.data[position_index]);
+        
+        while(i >= 0) {
+            System.out.println("i = " + i + "; data = " + this.data[i] + "; cpt = " + cpt);
+            if(this.data[i] > maxVal) {
+                cpt++;
+                i -= interval;
+            }
+            // if the value is too small, we stop 
+            else
+                break;
+        }
+        System.out.println("=============");
+        i = position_index;
+        while(i < this.data.length) {
+            System.out.println("i = " + i + "; data = " + this.data[i] + "; cpt = " + cpt);
+            if(this.data[i] > maxVal) {
+                amp += this.data[i];
+                cpt++;
+                i += interval;            
+            }
+            // if the value is too small, we stop 
+            else
+                break;
+        }        
+        
+        amp = amp / cpt;
+        System.out.println("amp = " + safeLongToInt(amp));
+        return 0;
+        // we go from the 
+    }
+
     /**
      * Calculates the number of times the interval * epsilon appear in our sample.
      * Every times it encounters a value that fits the constraints, it increaments the poids[]
@@ -129,7 +182,7 @@ public class GetFileInfo extends Average {
      */
     private void setIntervals(List<Integer> interval_index) {
         for(int i = 1; i < interval_index.size(); i++) {
-            this.interval_index.add(interval_index.get(i) - interval_index.get(i - 1));
+            this.intervals.add(interval_index.get(i) - interval_index.get(i - 1));
         }
     }
     
@@ -138,7 +191,7 @@ public class GetFileInfo extends Average {
      * @param position_index 
      */
     private void printGapBetweenSinusoidals(List<Integer> position_index) {
-        for(Integer i : this.interval_index)
+        for(Integer i : this.intervals)
             System.out.println(i);      
     }
     /**
@@ -163,10 +216,12 @@ public class GetFileInfo extends Average {
             i = findTopSinusoidal(i);
             if(i == -1)
                 return true;
+            this.position_index.add(i);
             i = findBottomSinusoidal(i);
             if(i == -1)
                 return true;
-            this.position_index.add(i);
+            //System.out.println("nbr = " + i);
+            
         }
        return false;
     }
@@ -346,4 +401,5 @@ public class GetFileInfo extends Average {
     public int[] getData() {
         return this.data;
     }
+
 }

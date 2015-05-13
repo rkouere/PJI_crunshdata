@@ -53,6 +53,10 @@ public class Tools {
      * Le nombre de données que l'on lit après avoir trouvé une valeure.
      */
     public static final int sampleToParseAfter = 500;
+    /**
+     * Le nombre de données que l'on lit après avoir trouvé une valeure.
+     */
+    public static final double epsilon = 0.9;
     
     /**
      * Le nombre de valeur que l'on lit a droite et a gauche de chaque sample.
