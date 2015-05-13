@@ -125,5 +125,19 @@ public class Tools {
         }
         return tmp;
     }
+    
+    /**
+     * Calculates the highest value in the array
+     * @param array
+     * @return the index of the highest value in an array
+     */
+    public static int maxIntArray(int[] array) {
+        int max = 0;
+        for(int i = 1; i < array.length; i++) {
+            if(array[i] > array[max])
+                max = i;
+        }
+        return max;
+    }
 
 }
