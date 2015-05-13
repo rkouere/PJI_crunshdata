@@ -35,7 +35,11 @@ public class GetFileInfo extends Average {
     /**
      * The indexes of each top in the file
      */
-    private List<Integer> indexTop;
+    private List<Integer> position_index;
+    /**
+     * The indexes of each top in the file
+     */
+    private List<Integer> interval_index;
     /**
      * The index of the first top of the sinusoidal
      * 
@@ -67,7 +71,8 @@ public class GetFileInfo extends Average {
      */
     public GetFileInfo(List<String> args) throws FileNotFoundException, IOException {
         super(args);
-        this.indexTop = new ArrayList<>();
+        this.interval_index = new ArrayList<>();
+        this.position_index = new ArrayList<>();
         this.nbrBytesInSample = this.samples[0].length();
         // on verifie que le nombre de données présente dans le fichier ne va pas faire exploser notre ram
         if ((this.nbrBytesInSample/Tools.dataSize) > Integer.MAX_VALUE)
@@ -85,17 +90,30 @@ public class GetFileInfo extends Average {
         getNbrSinusoidals();
         // we set the data of the first and of the last sinusoidal
         setFirstLastTop();
-        if(args.contains("-sinGap")) {
-            printGapBetweenSinusoidals();
+        setPositionIndex(this.interval_index);
+        if(args.contains("-sinGaps")) {
+            printGapBetweenSinusoidals(this.position_index);
         }
+
         
     }
-    private void printGapBetweenSinusoidals() {
-        int val1, val2;
-        for(int i = 0; i < this.indexTop.size() - 1; i++) {
-            System.out.println("The gap between top " + i + " and top " + (i+1) + " is \t" + (this.indexTop.get(i+1) - this.indexTop.get(i)));
+    /**
+     * Gives the interval between the sinusoidals
+     * @param interval_index 
+     */
+    private void setPositionIndex(List<Integer> interval_index) {
+        for(int i = 1; i < interval_index.size(); i++) {
+            this.position_index.add(interval_index.get(i) - interval_index.get(i - 1));
         }
-            
+    }
+    
+    /**
+     *  Prints the intervals between each sinusoidals
+     * @param position_index 
+     */
+    private void printGapBetweenSinusoidals(List<Integer> position_index) {
+        for(Integer i : this.position_index)
+            System.out.println(i);      
     }
     /**
      * This is just a simple function to set the variables relating to the 
@@ -103,8 +121,8 @@ public class GetFileInfo extends Average {
      * 
      */
     private void setFirstLastTop() {
-        setFirstTop(this.indexTop.get(0));
-        setLastTop(this.indexTop.get(this.indexTop.size() - 1));       
+        setFirstTop(this.interval_index.get(0));
+        setLastTop(this.interval_index.get(this.interval_index.size() - 1));       
     }
 
     /**
@@ -122,7 +140,7 @@ public class GetFileInfo extends Average {
             i = findBottomSinusoidal(i);
             if(i == -1)
                 return true;
-            this.indexTop.add(i);
+            this.interval_index.add(i);
         }
        return false;
     }
@@ -159,12 +177,12 @@ public class GetFileInfo extends Average {
         }
         System.out.println("L'index du premier top de la sinusoid est : " + this.firstTop);
         System.out.println("L'index du dernier top de la sinusoid est : " + this.lastTop);
-        System.out.println("Le nombre de sinusoidals present in the file is : " + this.indexTop.size());
+        System.out.println("Le nombre de sinusoidals present in the file is : " + this.interval_index.size());
 
         System.out.println("La mesure moyenne est de : " + result/this.nbrMeasuresInFile);
         System.out.println("La mesure maximum est de : " + this.maxValue);
         System.out.println("La mesure minimum est de : " + this.minValue);
-        System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.data.length - this.indexTop.get(0))  + " samples.");
+        System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.data.length - this.interval_index.get(0))  + " samples.");
         System.out.println("La taille optimal du fichier (best fit) allant de la premiere sinusoidal a la derniere serait de " +  (this.lastTop - this.firstTop)  + " samples.");
         
     }

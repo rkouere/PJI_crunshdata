@@ -37,7 +37,7 @@ public class Tools {
                 ANSI_BLUE + "-info : displays the min, max and average measures, the size of the file if we cut it from the first top elipse and the size of the file if we cut from the top of the first elipse to the top of the last elipse.\n" + ANSI_RESET +
                 "[options]\n" +
                 "\t-i filename : the name of the input\n" + 
-                "\t[-sinGap] : prints the gap between each sinusoidal top\n" + 
+                "\t[-sinGaps] : prints the gap between each sinusoidal top\n" + 
                 "========\n" + 
                 ANSI_BLUE + " -combineAvg : takes n parameters and create a file containing an average of each measure\n" +  ANSI_RESET +
                 "[options]\n" +
