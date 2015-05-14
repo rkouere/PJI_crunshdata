@@ -18,26 +18,17 @@ import java.util.List;
  * @author rkouere
  */
 public class Resample extends GetFileInfo {
-    private FileOutputStream fileOutputStream = null;
+    
 
     
     public Resample(List<String> args) throws FileNotFoundException, IOException {
         super(args);
         
         this.fileOutputStream = Tools.openOutputStream(this.samples[0], this.output);
-        exportFile();
+        exportFile(fileOutputStream, this.data, getFirstTop(), getLastTop());
         this.fileOutputStream.close();
     }
     
-    /**
-     * Will export a new file with the data going from the first sinusoidal to the last
-     * @throws IOException 
-     */
-    private void exportFile() throws IOException {
-        for(int i = getFirstTop(); i <= getLastTop(); i++) {
-            fileOutputStream.write(intToByte(this.getData()[i]), 0, Tools.dataSize);
-        }
-    }
 
     
 
