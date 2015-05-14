@@ -30,6 +30,10 @@ public class GetFileInfo extends Average {
      */
     private long minValue;
     /**
+     * The average value present in the original sample
+     */
+    private long avgValue;
+    /**
      * An array representing the samples
      */
     private int[] data;
@@ -50,7 +54,6 @@ public class GetFileInfo extends Average {
      * 
     */
     private int firstTop;
-
     /**
      * The index of the last top of the sinusoidal
      * 
@@ -68,6 +71,11 @@ public class GetFileInfo extends Average {
      * The value of the most likely "clean" amplitude
      */
     private int amp;
+    /**
+     * a new table which will be used to contain the new data after all the treatments have been made
+     */
+    private int[] new_sample;
+    
     
     /**
      * Initialise les paramètres puis renseigne les variables.
@@ -99,7 +107,8 @@ public class GetFileInfo extends Average {
         copyData();
         // we get the index of each top of each sinusoidal
         getNbrSinusoidals();
-        
+        getMinMaxAvg(this.data, this.nbrMeasuresInFile);
+
         // we set the data of the first and of the last sinusoidal
         setFirstLastTop();
         setIntervals(this.position_index);
@@ -107,13 +116,48 @@ public class GetFileInfo extends Average {
             this.poids = new int[this.intervals.size()];
             poid(this.intervals, Tools.epsilon);
             this.bestTop = Tools.maxIntArray(this.poids);
-            this.amp = avergage_amp(this.position_index.get(this.bestTop), this.intervals.get(this.bestTop));
+            this.amp = avergage_amp(this.position_index.get(this.bestTop), this.intervals.get(this.bestTop), Tools.epsilon);
         }
         if(args.contains("-sinGaps")) {
             printGapBetweenSinusoidals(this.intervals);
         }
     }
     
+    /**
+     * Finds the minimum, maximum and average value in data.
+     * Will set the variables :
+     * this.maxValue
+     * this.minValue
+     * this.avgValue
+     * @param data
+     * @param nbrMeasuresInFile 
+     */
+    private void getMinMaxAvg(int[] data, int nbrMeasuresInFile) {
+        long result = 0;
+        long tmp;
+
+        this.maxValue = Long.MIN_VALUE;
+        this.minValue = Long.MAX_VALUE;
+        /* Pour chaque 32 bits, on va lire le premier fichier et ajouter sa valeur dans result.
+            On va ensuite faire de même pour les autres et calculer sa moyenne.
+        */
+        
+        for(int i = 0; i < nbrMeasuresInFile; i++) {
+            tmp = data[i];
+            // on met à jours les valeurs max et min, si besoin
+            if(tmp > this.maxValue) {
+                //System.out.println(tmp);
+                this.maxValue = tmp;
+            }
+            if(tmp < this.minValue) {
+                this.minValue = tmp;
+            }
+//            System.out.println(this.data[i]);
+            // on ajoute la valeur à notre resultat final
+            result += tmp;  
+        }
+        this.avgValue = result/this.nbrMeasuresInFile;
+    }
     /**
      * Calculates the average amplitude if using the most likely average interval.
      * This function will add the values of each most probable top and calculate the average.
@@ -123,16 +167,18 @@ public class GetFileInfo extends Average {
      * @param interval_index 
      * @return 
      */
-    private int avergage_amp(Integer position_index, Integer interval) {
+    private int avergage_amp(Integer position_index, Integer interval, double epsilon) {
         long amp = 0;
         int i = position_index;
         int cpt = 0;
-        double maxVal = this.maxValue * Tools.epsilon;
-        System.out.println("data = " + this.data[position_index]);
-        
+        // the value that we use to see when to stop the calculation of the 
+        double maxVal = this.maxValue * epsilon;
+        System.out.println("max value = " + this.maxValue);
+        System.out.println("maxval = " + maxVal);
+        // we are going to go through all the data on the left of the index
         while(i >= 0) {
-            System.out.println("i = " + i + "; data = " + this.data[i] + "; cpt = " + cpt);
             if(this.data[i] > maxVal) {
+                amp += this.data[i];
                 cpt++;
                 i -= interval;
             }
@@ -141,10 +187,12 @@ public class GetFileInfo extends Average {
                 break;
         }
         System.out.println("=============");
-        i = position_index;
+        
+        // we reset the position from where 
+        i = position_index + interval;
         while(i < this.data.length) {
-            System.out.println("i = " + i + "; data = " + this.data[i] + "; cpt = " + cpt);
             if(this.data[i] > maxVal) {
+                System.out.println("i = " + i + "; data = " + this.data[i] + "; cpt = " + cpt + "; i = " + i);
                 amp += this.data[i];
                 cpt++;
                 i += interval;            
@@ -231,36 +279,12 @@ public class GetFileInfo extends Average {
      * @throws IOException 
      */
     public void printFileInfo() throws IOException {
-        byte[] buffer = new byte[Tools.dataSize];
-        long result = 0;
-        long tmp;
 
-        this.maxValue = Long.MIN_VALUE;
-        this.minValue = Long.MAX_VALUE;
-        /* Pour chaque 32 bits, on va lire le premier fichier et ajouter sa valeur dans result.
-            On va ensuite faire de même pour les autres et calculer sa moyenne.
-        */
-        
-        for(int i = 0; i < this.nbrMeasuresInFile; i++) {
-            tmp = this.data[i];
-            // on met à jours les valeurs max et min, si besoin
-            if(tmp > this.maxValue) {
-                //System.out.println(tmp);
-                this.maxValue = tmp;
-            }
-            if(tmp < this.minValue) {
-                this.minValue = tmp;
-            }
-//            System.out.println(this.data[i]);
-            // on ajoute la valeur à notre resultat final
-            result += tmp;
-            
-        }
         System.out.println("L'index du premier top de la sinusoid est : " + this.firstTop);
         System.out.println("L'index du dernier top de la sinusoid est : " + this.lastTop);
         System.out.println("Le nombre de sinusoidals present in the file is : " + this.position_index.size());
 
-        System.out.println("La mesure moyenne est de : " + result/this.nbrMeasuresInFile);
+        System.out.println("La mesure moyenne est de : " + this.avgValue);
         System.out.println("La mesure maximum est de : " + this.maxValue);
         System.out.println("La mesure minimum est de : " + this.minValue);
         System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.data.length - this.position_index.get(0))  + " samples.");
