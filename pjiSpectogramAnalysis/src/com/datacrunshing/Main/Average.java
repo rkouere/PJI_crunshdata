@@ -118,18 +118,7 @@ public class Average  {
         }
     }
     
-    /**
-     * Permet de tranformer un long en int tout en verifiant que l'on ne perdra pas d'information en route.
-     * @param l Le lon a tranformer
-     * @return un int
-     */
-    public static int safeLongToInt(long l) {
-        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException
-                (l + " cannot be cast to int without changing its value.");
-        }
-        return (int) l;
-    }
+
     
     /**
      * Tranforms a table of 4 little endian bytes to a long

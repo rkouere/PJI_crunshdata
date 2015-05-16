@@ -5,7 +5,6 @@
  */
 package com.datacrunshing.Main;
 
-import static com.datacrunshing.Main.Average.safeLongToInt;
 import com.datacrunshing.tools.Tools;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

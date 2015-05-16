@@ -78,7 +78,7 @@ public class CombineAvg extends Average {
             }
             // on fait la moyenne
             result = result/this.samples.length;
-            int tmpInt = safeLongToInt(result);
+            int tmpInt = Tools.safeLongToInt(result);
             fileOutputStream.write(intToByte(tmpInt), 0, bytesRead);         
         }
         this.fileOutputStream.close();
