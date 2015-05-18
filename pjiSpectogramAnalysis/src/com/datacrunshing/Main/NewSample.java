@@ -83,12 +83,11 @@ public class NewSample {
      * @param amplitude : the average amplitude
      */
     private void buildSample(int[] data, int bestPos, int interval, int amplitude, int newSampleEnd, int newSampleStart) {
-        System.out.println("new sample start = " + newSampleStart + "; amp = " + amplitude);
         for(int i = 0; i < this.new_sample.length; i++) {
             // try http://stackoverflow.com/questions/3671160/how-to-use-a-sine-cosine-wave-to-return-an-oscillating-number
             this.new_sample[i] = (int) (this.old_sample[i+newSampleStart] - (amplitude * (Math.cos((i-bestPos)*interval)/(2*Math.PI))));
-            System.out.println("old sample = " + this.old_sample[i+newSampleStart] + "; new = " + this.new_sample[i] + 
-                    "; calcul = " + (int)(amplitude * (Math.cos((i+bestPos)*interval)/(2*Math.PI))));
+//            System.out.println("old sample = " + this.old_sample[i+newSampleStart] + "; new = " + this.new_sample[i] + 
+//                    "; calcul = " + (int)(amplitude * (Math.cos((i+bestPos)*interval)/(2*Math.PI))));
         }
     }    
     /**

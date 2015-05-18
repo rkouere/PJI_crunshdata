@@ -29,7 +29,7 @@ public class Average  {
     public File[] samples = null;
     public List<String> arguments = new ArrayList<String>();
     public List<String> input = new ArrayList<String>();
-    public String output = "resampled.bin";
+    public String output = null;
 
     public Average(){
         
@@ -40,14 +40,17 @@ public class Average  {
         if(args.size() == 0)
             Tools.displayErrorAndExit(Tools.help);
         getInputs();
-        
+        this.samples = openFiles(this.input, this.numberOfSamples);
+
         // if we specifie a file for output, let's define it now
-        if((this.arguments.size() > 0) && this.arguments.get(0).equals("-o")) {
+        if(this.arguments.get(0).equals("-o")) {
             setOutput();
+        }else {
+            String[] tmp = this.samples[0].getName().split("\\.");
+            this.output = tmp[0] + "_new." + tmp[1];
         }
         
         
-        this.samples = openFiles(this.input, this.numberOfSamples);
         openInputStreams();
 
     }

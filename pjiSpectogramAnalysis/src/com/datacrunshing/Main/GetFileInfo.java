@@ -6,9 +6,12 @@
 package com.datacrunshing.Main;
 
 import com.datacrunshing.tools.Tools;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,10 +65,13 @@ public class GetFileInfo extends Average {
     private long nbrBytesInSample;
 
     /**
-     * a new table which will be used to contain the new data after all the treatments have been made
+     * A new table which will be used to contain the new data after all the treatments have been made
      */
     private int[] new_sample;
-
+    /**
+     * Stores the informations relative to the file
+     */
+    private String file_info;
     
     public FileOutputStream fileOutputStream = null;
     
@@ -108,12 +114,35 @@ public class GetFileInfo extends Average {
             this.new_sample = new NewSample(this.data, this.intervals_size, this.position_top_index).generateNewSample();
             this.fileOutputStream = Tools.openOutputStream(this.samples[0], this.output);
             exportFile(this.fileOutputStream, this.new_sample, 0, this.new_sample.length-1);
+            exportFileInfo(this.samples[0], this.output);
         }
         if(args.contains("-sinGaps")) {
             printGapBetweenSinusoidals(this.intervals_size);
         }
     }
     
+    /**
+     * Export the informations relating to the original files to a file called [name of the new file] + .log
+     * @param sample : the original sample
+     * @throws FileNotFoundException 
+     */
+    private void exportFileInfo(File sample, String output) throws FileNotFoundException, IOException {
+        String[] tmp = sample.getAbsolutePath().split("\\/");
+        String fileName;
+        if(output == null)
+            fileName = sample.getName().split("\\.")[0] + "_new";
+        else
+            fileName = output.split("\\.")[0];
+        String path = new String();
+        for(int i = 0; i < tmp.length - 1; i++)
+            path += tmp[i] + "/";
+        
+        String fileInfo = getFileInfo();
+        PrintWriter out = new PrintWriter(new FileWriter(path + fileName + ".log", true), true);
+        out.write(fileInfo);
+        out.close();
+
+    }
     /**
      * Will export a new file with the data going from the first sinusoidal to the last
      * @throws IOException 
@@ -211,23 +240,33 @@ public class GetFileInfo extends Average {
         }
        return false;
     }
+    
+    /**
+     * Gatherd the informations about the files
+     * @return 
+     */
+    private String getFileInfo() {
+        String tmp = new String();
+        tmp += "L'index du premier top de la sinusoid est : " + this.firstTop + "\n";
+        tmp += "L'index du dernier top de la sinusoid est : " + this.lastTop + "\n";
+        tmp += "Le nombre de sinusoidals present in the file is : " + this.position_top_index.size() + "\n";
+
+        tmp += "La mesure moyenne est de : " + this.avgValue + "\n";
+        tmp += "La mesure maximum est de : " + this.maxValue + "\n";
+        tmp += "La mesure minimum est de : " + this.minValue + "\n";
+        tmp += "En decoupant à partir de la premiere sinusoidal, il resterait " + (this.data.length - this.position_top_index.get(0))  + " samples." + "\n";
+        tmp += "La taille optimal du fichier (best fit) allant de la premiere sinusoidal a la derniere serait de " +  (this.lastTop - this.firstTop)  + " samples.";
+        
+        return tmp;
+    }
 
     /**
      * Imprime la valeur moyenne, minimum et maximum d'un fichier bin 
      * @throws IOException 
      */
     public void printFileInfo() throws IOException {
+        System.out.println(getFileInfo());
 
-        System.out.println("L'index du premier top de la sinusoid est : " + this.firstTop);
-        System.out.println("L'index du dernier top de la sinusoid est : " + this.lastTop);
-        System.out.println("Le nombre de sinusoidals present in the file is : " + this.position_top_index.size());
-
-        System.out.println("La mesure moyenne est de : " + this.avgValue);
-        System.out.println("La mesure maximum est de : " + this.maxValue);
-        System.out.println("La mesure minimum est de : " + this.minValue);
-        System.out.println("En decoupant à partir de la premiere sinusoidal, il resterait " + (this.data.length - this.position_top_index.get(0))  + " samples.");
-        System.out.println("La taille optimal du fichier (best fit) allant de la premiere sinusoidal a la derniere serait de " +  (this.lastTop - this.firstTop)  + " samples.");
-        
     }
     
     /**
@@ -363,5 +402,7 @@ public class GetFileInfo extends Average {
     public int[] getData() {
         return this.data;
     }
+
+
 
 }
