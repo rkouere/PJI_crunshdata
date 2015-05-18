@@ -43,9 +43,9 @@ public class Average  {
         this.samples = openFiles(this.input, this.numberOfSamples);
 
         // if we specifie a file for output, let's define it now
-        if(this.arguments.get(0).equals("-o")) {
+        if(this.arguments.size() > 0 && this.arguments.get(0).equals("-o")) {
             setOutput();
-        }else {
+        }else if (this.arguments.size() > 0){
             String[] tmp = this.samples[0].getName().split("\\.");
             this.output = tmp[0] + "_new." + tmp[1];
         }
