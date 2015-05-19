@@ -7,6 +7,7 @@ package com.datacrunshing.Main;
 
 import com.datacrunshing.tools.Tools;
 import java.io.FileOutputStream;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,27 +55,42 @@ public class NewSample {
         this.old_sample = sample;
         this.intervals_size = interval_size;
         this.position_top_index = position_top_index;
-        this.fileOutputStream = fileOutputStream;
-        
+
         // we initialise the table we'll have to use to store the number of time a top appears in the file
         this.poids = new int[this.intervals_size.size()];
         // we find the occurence of each tops in the sample
     }
     
     public int[] generateNewSample() {
+        int averge_interval = 0;
         poid(this.intervals_size, Tools.epsilon);
         // we fing the index of the measure that most likely represents the "ideal" top
         this.bestPos = Tools.maxIntArray(this.poids);
         // we fing the average amplitude
-        this.amp = avergage_amp(this.old_sample, this.position_top_index.get(this.bestPos), this.intervals_size.get(this.bestPos), Tools.epsilon);
+        averge_interval = getAvergeInterval(this.intervals_size);
+        this.amp = avergage_amp(this.old_sample, this.position_top_index.get(this.bestPos), averge_interval, Tools.epsilon);
         // we get the indexes that will be used to create the new sample 
         // (we only want to keep the measures which are within an acceptable range, compared with the most probable top).
-        getNewSampleBounds(this.old_sample, this.position_top_index.get(this.bestPos), this.intervals_size.get(this.bestPos), Tools.epsilon);
+        getNewSampleBounds(this.old_sample, this.position_top_index.get(this.bestPos), averge_interval, Tools.epsilon);
         this.new_sample = new int[this.newSampleEnd - this.newSampleStart];
-        buildSample(this.old_sample, this.bestPos, this.intervals_size.get(this.bestPos), this.amp, this.newSampleEnd, this.newSampleStart);
+
+        buildSample(this.old_sample, this.position_top_index.get(this.bestPos), averge_interval, this.amp, this.newSampleEnd, this.newSampleStart, Tools.epsilon);
         return this.new_sample;
     }
     
+    /**
+     * Calculate the average interval within the chosen bounds
+     * @return 
+     */
+    private int getAvergeInterval(List<Integer> intervals_size) {
+        long avg = 0;
+        int cpt = 0;
+        for(int i = 0; i < intervals_size.size(); i++) {
+            avg += intervals_size.get(i);
+            cpt++;
+        }
+        return Tools.safeLongToInt(avg/cpt);
+    }
     /**
      * This will try to remove the noise from the original sample and store it in this.new_sample.
      * @param data : the original sample
@@ -82,12 +98,26 @@ public class NewSample {
      * @param interval : the interval that is the most likely the "average" interval produced by the signal generator
      * @param amplitude : the average amplitude
      */
-    private void buildSample(int[] data, int bestPos, int interval, int amplitude, int newSampleEnd, int newSampleStart) {
+    private void buildSample(int[] data, int bestPos, int interval, int amplitude, int newSampleEnd, int newSampleStart, double epsilon) {
+        double valMax = ((double)this.old_sample[bestPos]) * epsilon;
+        double cos;
+        System.out.println("nest pos = " + this.old_sample[bestPos]);
+        System.out.println("best top = " + bestPos);
+
+        System.out.println("val max = " + (int)(Math.round(valMax)));
         for(int i = 0; i < this.new_sample.length; i++) {
-            // try http://stackoverflow.com/questions/3671160/how-to-use-a-sine-cosine-wave-to-return-an-oscillating-number
-            this.new_sample[i] = (int) (this.old_sample[i+newSampleStart] - (amplitude * (Math.cos((i-bestPos)*interval)/(2*Math.PI))));
-//            System.out.println("old sample = " + this.old_sample[i+newSampleStart] + "; new = " + this.new_sample[i] + 
-//                    "; calcul = " + (int)(amplitude * (Math.cos((i+bestPos)*interval)/(2*Math.PI))));
+            cos = ((double)amplitude) * (Math.cos((double)(i+newSampleStart-bestPos)*(2*Math.PI)/(double)interval));
+            this.new_sample[i] = (int) (((double)this.old_sample[i+newSampleStart]) - cos);
+            if(this.position_top_index.contains(i+newSampleStart)) {
+                System.out.print(
+                        "valeur origine = " + this.old_sample[i+newSampleStart] + 
+                        "; valeur cos = " + Math.round(cos) + 
+                        "; valeur result = " + this.new_sample[i]
+                        );
+                if(this.new_sample[i] >= Math.round(valMax))
+                    System.out.print("*");
+                System.out.print("\n");
+            }
         }
     }    
     /**

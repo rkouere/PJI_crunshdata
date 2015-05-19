@@ -119,6 +119,7 @@ public class GetFileInfo extends Average {
         if(args.contains("-sinGaps")) {
             printGapBetweenSinusoidals(this.intervals_size);
         }
+        
     }
     
     /**
